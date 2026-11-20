@@ -49,6 +49,7 @@ export const adminNav = [
   { label: 'Overview', href: '/admin', icon: 'layout-dashboard' },
   { label: 'Products', href: '/admin/products', icon: 'boxes' },
   { label: 'Categories', href: '/admin/categories', icon: 'tags' },
+  { label: 'Homepage settings', href: '/admin/homepage', icon: 'image' },
   { label: 'Orders', href: '/admin/orders', icon: 'shopping-bag' },
   { label: 'Customers', href: '/admin/customers', icon: 'users' },
   { label: 'Store settings', href: '/admin/settings', icon: 'settings' },

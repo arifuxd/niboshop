@@ -16,7 +16,7 @@ export function AccountAccess() {
         type="button"
         variant="ghost"
         onClick={() => setOpen(true)}
-        className="gap-2 text-header-foreground hover:bg-white/10 hover:text-header-foreground"
+        className="size-9 w-9 gap-2 p-0 text-header-foreground hover:bg-white/10 hover:text-header-foreground sm:w-auto sm:px-4"
         aria-label={t('Account')}
         aria-haspopup="dialog"
       >

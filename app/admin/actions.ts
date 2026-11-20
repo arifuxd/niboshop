@@ -16,6 +16,11 @@ import {
   getCategory,
   updateCustomer,
   updateOrderStatus,
+  updateHomepageBanners,
+  updateHomepageSections,
+  homepageSections,
+  getProducts,
+  type Banner,
   type CustomerStatus,
   type OrderStatus,
 } from '@/lib/data'
@@ -91,6 +96,53 @@ export async function createSubcategoryAction(data: FormData) {
   }
   revalidatePath('/', 'layout')
   redirect('/admin/categories?status=subcategory-added')
+}
+
+export async function saveHomepageSettingsAction(data: FormData) {
+  const validDestination = (value: string) => {
+    if (value.startsWith('/') && !value.startsWith('//')) return true
+    try {
+      return new URL(value).protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
+  const validAsset = (value: string) => value.startsWith('/') || value.startsWith('https://')
+  const readBanners = (prefix: string, count: number): Banner[] =>
+    Array.from({ length: count }, (_, index) => ({
+      id: text(data, `${prefix}-${index}-id`),
+      image: text(data, `${prefix}-${index}-image`),
+      alt: text(data, `${prefix}-${index}-alt`),
+      href: text(data, `${prefix}-${index}-href`),
+    }))
+  const heroCount = Number(text(data, 'hero-count'))
+  const sideCount = Number(text(data, 'side-count'))
+  const hero = readBanners('hero', heroCount)
+  const side = readBanners('side', sideCount)
+  if (!Number.isInteger(heroCount) || heroCount < 1 || heroCount > 8 || sideCount !== 2 ||
+    [...hero, ...side].some((banner) => !banner.id || !validAsset(banner.image) || banner.alt.length > 160 || !validDestination(banner.href))) {
+    redirect('/admin/homepage?status=error')
+  }
+
+  const sectionCount = Number(text(data, 'section-count'))
+  if (!Number.isInteger(sectionCount) || sectionCount < 1 || sectionCount > 8) redirect('/admin/homepage?status=error')
+  const availableProducts = await getProducts()
+  const sections = Array.from({ length: sectionCount }, (_, index) => {
+    const id = text(data, `section-${index}-id`)
+    const title = text(data, `section-${index}-title`)
+    const description = text(data, `section-${index}-description`)
+    const productIds = data.getAll(`section-${index}-product`).map(String)
+    return { id, title, description, productIds }
+  })
+  if (sections.some((section) => !section.id || !section.title || section.title.length > 80 || section.description.length > 160 ||
+    section.productIds.length > availableProducts.length || new Set(section.productIds).size !== section.productIds.length || section.productIds.some((id) => !availableProducts.some((product) => product.id === id)))) {
+    redirect('/admin/homepage?status=error')
+  }
+  await updateHomepageBanners({ hero, side })
+  await updateHomepageSections(sections)
+  revalidatePath('/', 'layout')
+  revalidatePath('/admin/homepage')
+  redirect('/admin/homepage?status=saved')
 }
 
 export async function createProductAction(_prev: FormState, data: FormData): Promise<FormState> {

@@ -6,10 +6,32 @@ import { categories } from './categories'
 import { products } from './products'
 import { buildReviews } from './reviews'
 import { customers, orders, revenueByMonth, currentCustomerId } from './orders'
-import type { Category, Customer, CustomerStatus, Order, OrderStatus, Product } from './types'
+import { heroBanners, sideBanners } from './banners'
+import type { Banner, Category, Customer, CustomerStatus, Order, OrderStatus, Product } from './types'
 
 export * from './types'
-export { heroBanners, sideBanners } from './banners'
+export { heroBanners, sideBanners }
+
+export type HomepageSection = {
+  id: string
+  title: string
+  description: string
+  productIds: string[]
+}
+
+export const homepageSections: HomepageSection[] = [
+  { id: 'featured', title: 'Featured Products', description: 'Hand-picked bestsellers from our stores', productIds: products.filter((product) => product.isFeatured).slice(0, 10).map((product) => product.id) },
+  { id: 'new-arrivals', title: 'New Arrivals', description: 'Fresh in stock this week', productIds: products.filter((product) => product.isNew).slice(0, 5).map((product) => product.id) },
+]
+
+export async function updateHomepageBanners(input: { hero: Banner[]; side: Banner[] }) {
+  heroBanners.splice(0, heroBanners.length, ...input.hero)
+  sideBanners.splice(0, sideBanners.length, ...input.side)
+}
+
+export async function updateHomepageSections(sections: HomepageSection[]) {
+  homepageSections.splice(0, homepageSections.length, ...sections)
+}
 
 export async function getCategories() {
   return categories

@@ -58,34 +58,32 @@ export function CategoryManager({ categories, productCategorySlugs }: { categori
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <Badge variant="secondary">{category.subcategories.length} subcategories</Badge>
+                <Badge variant="secondary" className="hidden sm:inline-flex">{category.subcategories.length} subcategories</Badge>
+                <CategoryEditForm category={category} />
                 <DeleteCategoryButton slug={category.slug} name={category.name} disabled={productCategorySlugs.includes(category.slug)} />
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <details className="rounded-lg border bg-muted/20 p-3">
-                <summary className="cursor-pointer text-sm font-medium">Edit category</summary>
-                <div className="mt-4"><CategoryEditForm category={category} /></div>
+                <summary className="cursor-pointer text-sm font-medium">Manage subcategories <span className="text-muted-foreground">({category.subcategories.length})</span></summary>
+                <div className="mt-4 flex flex-col gap-4">
+                  {category.subcategories.length ? (
+                    <ul className="flex flex-wrap gap-2">
+                      {category.subcategories.map((subcategory) => (
+                        <li key={subcategory.slug}><Badge variant="outline">{subcategory.name}</Badge></li>
+                      ))}
+                    </ul>
+                  ) : <p className="text-sm text-muted-foreground">No subcategories yet.</p>}
+                  <form action={createSubcategoryAction} className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
+                    <input type="hidden" name="categorySlug" value={category.slug} />
+                    <Field className="min-w-0 flex-1">
+                      <FieldLabel htmlFor={`subcategory-${category.slug}`}>New subcategory</FieldLabel>
+                      <Input id={`subcategory-${category.slug}`} name="name" minLength={2} required placeholder={`e.g. ${category.name} accessories`} />
+                    </Field>
+                    <Button type="submit" variant="outline">Add subcategory</Button>
+                  </form>
+                </div>
               </details>
-              {category.subcategories.length ? (
-                <ul className="flex flex-wrap gap-2">
-                  {category.subcategories.map((subcategory) => (
-                    <li key={subcategory.slug}>
-                      <Badge variant="outline">{subcategory.name}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">No subcategories yet.</p>
-              )}
-              <form action={createSubcategoryAction} className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-end">
-                <input type="hidden" name="categorySlug" value={category.slug} />
-                <Field className="min-w-0 flex-1">
-                  <FieldLabel htmlFor={`subcategory-${category.slug}`}>New subcategory</FieldLabel>
-                  <Input id={`subcategory-${category.slug}`} name="name" minLength={2} required placeholder={`e.g. ${category.name} accessories`} />
-                </Field>
-                <Button type="submit" variant="outline">Add subcategory</Button>
-              </form>
             </CardContent>
           </Card>
         ))}

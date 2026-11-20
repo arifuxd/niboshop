@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -13,10 +12,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { getCategories } from '@/lib/data'
+import { MobileCategoryMenu } from './mobile-category-menu'
 import { siteConfig } from '@/lib/site-config'
 import { CartButton } from './cart-sheet'
 import { CategoryNavigation } from './category-navigation'
-import { NamedIcon } from './category-icon'
 import { Logo } from './logo'
 import { SearchBox } from './search-box'
 
@@ -40,7 +39,7 @@ export async function SiteHeader() {
       </div>
 
       <div className="bg-header text-header-foreground">
-        <div className="container-shop flex min-h-[84px] items-center gap-3 py-2.5 md:gap-6">
+        <div className="container-shop flex min-h-[84px] items-center gap-2 py-2.5 md:gap-6">
           <Sheet>
             <SheetTrigger
               render={
@@ -56,37 +55,18 @@ export async function SiteHeader() {
             </SheetTrigger>
             <SheetContent side="left" className="w-72 gap-0 p-0">
               <SheetHeader className="border-b p-4">
-                <SheetTitle>{siteConfig.name}</SheetTitle>
+                <SheetTitle><LocalizedText text="Menu" /></SheetTitle>
                 <SheetDescription className="sr-only">Browse categories</SheetDescription>
               </SheetHeader>
-              <nav className="flex flex-col p-2" aria-label="Categories">
-                {categories.map((c) => (
-                  <div key={c.slug} className="flex flex-col">
-                    <Link
-                      href={`/category/${c.slug}`}
-                      aria-haspopup={c.subcategories.length > 0 ? 'true' : undefined}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-accent"
-                    >
-                      <NamedIcon name={c.icon} className="size-4 text-primary" />
-                      {c.name}
-                    </Link>
-                    {c.subcategories.length > 0 && (
-                      <ul className="ml-7 flex flex-col border-l pl-3">
-                        {c.subcategories.map((subcategory) => (
-                          <li key={subcategory.slug}>
-                            <Link
-                              href={`/category/${c.slug}?subcategory=${subcategory.slug}`}
-                              className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
-                            >
-                              {subcategory.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </nav>
+              <MobileCategoryMenu categories={categories} />
+              <div className="mx-4 mt-2 mb-6 border-t pt-3">
+                <div className="flex items-center justify-between rounded-lg bg-header px-3 py-2 text-header-foreground">
+                  <span className="whitespace-nowrap text-sm font-medium">
+                    <LocalizedText text="Language" />
+                  </span>
+                  <LanguageSwitcher />
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -95,7 +75,9 @@ export async function SiteHeader() {
           <SearchBox className="hidden flex-1 md:block md:max-w-2xl" />
 
           <div className="ml-auto flex items-center gap-1">
-            <LanguageSwitcher />
+            <div className="hidden md:block">
+              <LanguageSwitcher className="shrink-0" />
+            </div>
             <AccountAccess />
             <CartButton />
           </div>

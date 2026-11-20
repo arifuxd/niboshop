@@ -12,6 +12,7 @@ type LanguageContextValue = {
 const translations: Record<string, string> = {
   'Account': 'অ্যাকাউন্ট',
   'Choose language': 'ভাষা নির্বাচন করুন',
+  'Language': 'ভাষা',
   'View store': 'স্টোর দেখুন',
   'Dashboard': 'ড্যাশবোর্ড',
   'Admin': 'অ্যাডমিন',
