@@ -28,29 +28,32 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ sort?: string; brand?: string }>
+  searchParams: Promise<{ sort?: string; brand?: string; subcategory?: string }>
 }) {
   const { slug } = await params
-  const { sort = 'featured', brand } = await searchParams
+  const { sort = 'featured', brand, subcategory: subcategorySlug } = await searchParams
   const [category, categories, all] = await Promise.all([
     getCategory(slug),
     getCategories(),
-    getProducts({ categorySlug: slug }),
+    getProducts({ categorySlug: slug, subcategorySlug }),
   ])
   if (!category) notFound()
 
   const brands = Array.from(new Set(all.map((p) => p.brand))).sort()
+  const activeSubcategory = category.subcategories.find((item) => item.slug === subcategorySlug)
   let list = brand ? all.filter((p) => p.brand === brand) : [...all]
   if (sort === 'price-asc') list.sort((a, b) => a.price - b.price)
   if (sort === 'price-desc') list.sort((a, b) => b.price - a.price)
   if (sort === 'rating') list.sort((a, b) => b.rating - a.rating)
 
-  const href = (next: { sort?: string; brand?: string }) => {
+  const href = (next: { sort?: string; brand?: string; subcategory?: string }) => {
     const q = new URLSearchParams()
     const s = next.sort ?? sort
     const b = 'brand' in next ? next.brand : brand
+    const subcategory = 'subcategory' in next ? next.subcategory : subcategorySlug
     if (s && s !== 'featured') q.set('sort', s)
     if (b) q.set('brand', b)
+    if (subcategory) q.set('subcategory', subcategory)
     const qs = q.toString()
     return `/category/${slug}${qs ? `?${qs}` : ''}`
   }
@@ -67,7 +70,9 @@ export default async function CategoryPage({
     <div className="container-shop py-4">
       <Breadcrumbs items={[{ label: category.name }]} />
       <div className="mt-3 flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{category.name}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {activeSubcategory ? `${category.name} / ${activeSubcategory.name}` : category.name}
+        </h1>
         <p className="text-sm text-muted-foreground">{category.description}</p>
       </div>
 
@@ -87,6 +92,22 @@ export default async function CategoryPage({
                   >
                     {c.name}
                   </Link>
+                  {c.slug === slug && c.subcategories.length > 0 && (
+                    <ul className="ml-3 mt-1 flex flex-wrap gap-1.5 lg:flex-col">
+                      <li>
+                        <Link href={href({ subcategory: undefined })} className={cn('block rounded-md px-2 py-1.5 text-xs hover:bg-accent', !activeSubcategory && 'font-medium text-primary')}>
+                          All {c.name}
+                        </Link>
+                      </li>
+                      {c.subcategories.map((subcategory) => (
+                        <li key={subcategory.slug}>
+                          <Link href={href({ subcategory: subcategory.slug })} className={cn('block rounded-md px-2 py-1.5 text-xs hover:bg-accent', activeSubcategory?.slug === subcategory.slug && 'font-medium text-primary')}>
+                            {subcategory.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               ))}
             </ul>

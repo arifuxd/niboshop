@@ -3,8 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
+  createCategory,
   createCustomer,
   createProduct,
+  createSubcategory,
   deleteCustomer,
   deleteProduct,
   getCategory,
@@ -24,11 +26,38 @@ const orderStatuses: OrderStatus[] = ['pending', 'processing', 'shipped', 'deliv
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? '').trim()
 
+export async function createCategoryAction(data: FormData) {
+  const name = text(data, 'name')
+  const description = text(data, 'description')
+  const requestedIcon = text(data, 'icon')
+  const icons = ['smartphone', 'tablet', 'laptop', 'watch', 'headphones', 'battery-charging', 'gamepad-2', 'cooking-pot']
+  if (name.length < 2 || description.length < 3) redirect('/admin/categories?status=error')
+
+  await createCategory({
+    name,
+    description,
+    icon: icons.includes(requestedIcon) ? requestedIcon : 'boxes',
+  })
+  revalidatePath('/', 'layout')
+  redirect('/admin/categories?status=category-added')
+}
+
+export async function createSubcategoryAction(data: FormData) {
+  const categorySlug = text(data, 'categorySlug')
+  const name = text(data, 'name')
+  if (name.length < 2 || !(await createSubcategory(categorySlug, name))) {
+    redirect('/admin/categories?status=error')
+  }
+  revalidatePath('/', 'layout')
+  redirect('/admin/categories?status=subcategory-added')
+}
+
 export async function createProductAction(_prev: FormState, data: FormData): Promise<FormState> {
   const fieldErrors: Record<string, string> = {}
   const name = text(data, 'name')
   const brand = text(data, 'brand')
   const categorySlug = text(data, 'categorySlug')
+  const subcategorySlug = text(data, 'subcategorySlug')
   const price = Number(text(data, 'price'))
   const comparePriceRaw = text(data, 'comparePrice')
   const comparePrice = comparePriceRaw ? Number(comparePriceRaw) : undefined
@@ -49,7 +78,11 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
 
   if (name.length < 3) fieldErrors.name = 'Enter a product name (at least 3 characters).'
   if (!brand) fieldErrors.brand = 'Enter a brand.'
-  if (!(await getCategory(categorySlug))) fieldErrors.categorySlug = 'Choose a category.'
+  const category = await getCategory(categorySlug)
+  if (!category) fieldErrors.categorySlug = 'Choose a category.'
+  if (subcategorySlug && !category?.subcategories.some((subcategory) => subcategory.slug === subcategorySlug)) {
+    fieldErrors.subcategorySlug = 'Choose a subcategory from the selected category.'
+  }
   if (!Number.isFinite(price) || price <= 0) fieldErrors.price = 'Enter a price greater than 0.'
   if (comparePrice !== undefined && (!Number.isFinite(comparePrice) || comparePrice <= price))
     fieldErrors.comparePrice = 'Regular price must be higher than the sale price.'
@@ -66,6 +99,7 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
     name,
     brand,
     categorySlug,
+    subcategorySlug: subcategorySlug || undefined,
     price,
     comparePrice,
     stock,

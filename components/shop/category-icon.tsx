@@ -12,6 +12,7 @@ import {
   ShoppingBagIcon,
   SmartphoneIcon,
   TabletIcon,
+  TagsIcon,
   UserIcon,
   UsersIcon,
   WatchIcon,
@@ -34,6 +35,7 @@ const icons: Record<string, LucideIcon> = {
   user: UserIcon,
   boxes: BoxesIcon,
   'shopping-bag': ShoppingBagIcon,
+  tags: TagsIcon,
   users: UsersIcon,
 }
 

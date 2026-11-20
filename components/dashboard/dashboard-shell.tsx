@@ -39,13 +39,14 @@ export function DashboardShell({
           <LanguageSwitcher className="ml-auto" />
           <Link
             href="/"
+            aria-label={t('View store')}
             className={cn(
               buttonVariants({ variant: 'ghost', size: 'sm' }),
               'text-header-foreground hover:bg-white/10 hover:text-header-foreground',
             )}
           >
             <ExternalLinkIcon data-icon="inline-start" />
-            {t('View store')}
+            <span className="hidden sm:inline">{t('View store')}</span>
           </Link>
         </div>
       </header>

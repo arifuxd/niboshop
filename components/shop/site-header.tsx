@@ -15,6 +15,7 @@ import {
 import { getCategories } from '@/lib/data'
 import { siteConfig } from '@/lib/site-config'
 import { CartButton } from './cart-sheet'
+import { CategoryNavigation } from './category-navigation'
 import { NamedIcon } from './category-icon'
 import { Logo } from './logo'
 import { SearchBox } from './search-box'
@@ -60,14 +61,30 @@ export async function SiteHeader() {
               </SheetHeader>
               <nav className="flex flex-col p-2" aria-label="Categories">
                 {categories.map((c) => (
-                  <Link
-                    key={c.slug}
-                    href={`/category/${c.slug}`}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-accent"
-                  >
-                    <NamedIcon name={c.icon} className="size-4 text-primary" />
-                    {c.name}
-                  </Link>
+                  <div key={c.slug} className="flex flex-col">
+                    <Link
+                      href={`/category/${c.slug}`}
+                      aria-haspopup={c.subcategories.length > 0 ? 'true' : undefined}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-accent"
+                    >
+                      <NamedIcon name={c.icon} className="size-4 text-primary" />
+                      {c.name}
+                    </Link>
+                    {c.subcategories.length > 0 && (
+                      <ul className="ml-7 flex flex-col border-l pl-3">
+                        {c.subcategories.map((subcategory) => (
+                          <li key={subcategory.slug}>
+                            <Link
+                              href={`/category/${c.slug}?subcategory=${subcategory.slug}`}
+                              className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                            >
+                              {subcategory.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ))}
               </nav>
             </SheetContent>
@@ -88,24 +105,7 @@ export async function SiteHeader() {
         </div>
       </div>
 
-      <nav
-        aria-label="Product categories"
-        className="hidden border-b bg-background shadow-sm lg:block"
-      >
-        <ul className="container-shop flex items-center gap-1 overflow-x-auto scrollbar-none">
-          {categories.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/category/${c.slug}`}
-                className="flex items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-foreground/80 hover:text-primary"
-              >
-                <NamedIcon name={c.icon} className="size-4" />
-                {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <CategoryNavigation categories={categories} />
     </header>
   )
 }

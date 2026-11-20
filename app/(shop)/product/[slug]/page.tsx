@@ -35,6 +35,7 @@ export default async function ProductPage({
     getCategory(product.categorySlug),
     getRelatedProducts(product, 5),
   ])
+  const subcategory = category?.subcategories.find((item) => item.slug === product.subcategorySlug)
 
   return (
     <>
@@ -43,6 +44,7 @@ export default async function ProductPage({
         <Breadcrumbs
           items={[
             ...(category ? [{ label: category.name, href: `/category/${category.slug}` }] : []),
+            ...(category && subcategory ? [{ label: subcategory.name, href: `/category/${category.slug}?subcategory=${subcategory.slug}` }] : []),
             { label: product.name },
           ]}
         />

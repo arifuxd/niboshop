@@ -29,6 +29,9 @@ export function ProductForm({ categories }: { categories: Category[] }) {
   const [uploading, setUploading] = React.useState(false)
   const [uploadError, setUploadError] = React.useState('')
   const [draggedId, setDraggedId] = React.useState<string | null>(null)
+  const [categorySlug, setCategorySlug] = React.useState('')
+  const [subcategorySlug, setSubcategorySlug] = React.useState('')
+  const selectedCategory = categories.find((category) => category.slug === categorySlug)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const err = state.fieldErrors ?? {}
 
@@ -104,7 +107,16 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                 </Field>
                 <Field data-invalid={!!err.categorySlug}>
                   <FieldLabel htmlFor="categorySlug">Category</FieldLabel>
-                  <NativeSelect id="categorySlug" name="categorySlug" defaultValue="" aria-invalid={!!err.categorySlug}>
+                  <NativeSelect
+                    id="categorySlug"
+                    name="categorySlug"
+                    value={categorySlug}
+                    onChange={(event) => {
+                      setCategorySlug(event.target.value)
+                      setSubcategorySlug('')
+                    }}
+                    aria-invalid={!!err.categorySlug}
+                  >
                     <option value="" disabled>
                       Select a category
                     </option>
@@ -117,6 +129,27 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                   {err.categorySlug && <FieldError>{err.categorySlug}</FieldError>}
                 </Field>
               </div>
+              {selectedCategory?.subcategories.length ? (
+                <Field data-invalid={!!err.subcategorySlug}>
+                  <FieldLabel htmlFor="subcategorySlug">Subcategory</FieldLabel>
+                  <NativeSelect
+                    id="subcategorySlug"
+                    name="subcategorySlug"
+                    value={subcategorySlug}
+                    onChange={(event) => setSubcategorySlug(event.target.value)}
+                    aria-invalid={!!err.subcategorySlug}
+                  >
+                    <option value="">No subcategory</option>
+                    {selectedCategory.subcategories.map((subcategory) => (
+                      <option key={subcategory.slug} value={subcategory.slug}>
+                        {subcategory.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                  {err.subcategorySlug && <FieldError>{err.subcategorySlug}</FieldError>}
+                  <FieldDescription>Choose a more specific product category.</FieldDescription>
+                </Field>
+              ) : null}
               <Field data-invalid={!!err.description}>
                 <FieldLabel htmlFor="description">Description</FieldLabel>
                 <Textarea
