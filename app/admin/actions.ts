@@ -99,6 +99,14 @@ export async function createSubcategoryAction(data: FormData) {
 }
 
 export async function saveHomepageSettingsAction(data: FormData) {
+  const validDestination = (value: string) => {
+    if (value.startsWith('/') && !value.startsWith('//')) return true
+    try {
+      return new URL(value).protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
   const validAsset = (value: string) => value.startsWith('/') || value.startsWith('https://')
   const readBanners = (prefix: string, count: number): Banner[] =>
     Array.from({ length: count }, (_, index) => ({
@@ -112,7 +120,7 @@ export async function saveHomepageSettingsAction(data: FormData) {
   const hero = readBanners('hero', heroCount)
   const side = readBanners('side', sideCount)
   if (!Number.isInteger(heroCount) || heroCount < 1 || heroCount > 8 || sideCount !== 2 ||
-    [...hero, ...side].some((banner) => !banner.id || !validAsset(banner.image) || !banner.alt || banner.alt.length > 160 || !banner.href.startsWith('/') || banner.href.startsWith('//'))) {
+    [...hero, ...side].some((banner) => !banner.id || !validAsset(banner.image) || banner.alt.length > 160 || !validDestination(banner.href))) {
     redirect('/admin/homepage?status=error')
   }
 
@@ -127,7 +135,7 @@ export async function saveHomepageSettingsAction(data: FormData) {
     return { id, title, description, productIds }
   })
   if (sections.some((section) => !section.id || !section.title || section.title.length > 80 || section.description.length > 160 ||
-    section.productIds.length > 20 || section.productIds.some((id) => !availableProducts.some((product) => product.id === id)))) {
+    section.productIds.length > availableProducts.length || new Set(section.productIds).size !== section.productIds.length || section.productIds.some((id) => !availableProducts.some((product) => product.id === id)))) {
     redirect('/admin/homepage?status=error')
   }
   await updateHomepageBanners({ hero, side })
