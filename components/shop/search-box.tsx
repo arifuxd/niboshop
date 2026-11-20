@@ -17,7 +17,11 @@ type SearchResult = {
   comparePrice?: number
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json() as Promise<SearchResult[]>)
+const fetcher = async (url: string): Promise<SearchResult[]> => {
+  const response = await fetch(url, { cache: 'no-store' })
+  if (!response.ok) throw new Error('Product search failed')
+  return response.json() as Promise<SearchResult[]>
+}
 
 export function SearchBox({ className }: { className?: string }) {
   const { t } = useLanguage()
@@ -40,7 +44,7 @@ export function SearchBox({ className }: { className?: string }) {
   }, [])
 
   const enabled = debounced.length >= 3
-  const { data, isLoading } = useSWR(
+  const { data, isLoading, error } = useSWR(
     enabled ? `/api/search?q=${encodeURIComponent(debounced)}` : null,
     fetcher,
     { keepPreviousData: true },
@@ -50,10 +54,11 @@ export function SearchBox({ className }: { className?: string }) {
 
   return (
     <div ref={ref} className={`relative ${className ?? ''}`}>
-      <div className="flex h-11 items-center gap-2 rounded-lg border bg-background px-3 text-foreground focus-within:ring-2 focus-within:ring-ring">
+      <form action="/search" method="get" role="search" className="flex h-11 items-center gap-2 rounded-lg border bg-background px-3 text-foreground focus-within:ring-2 focus-within:ring-ring">
         <SearchIcon className="size-4 text-muted-foreground" aria-hidden="true" />
         <input
           type="search"
+          name="q"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -78,39 +83,46 @@ export function SearchBox({ className }: { className?: string }) {
             <XIcon className="size-4" />
           </button>
         )}
-      </div>
+      </form>
 
       {showPanel && (
         <div className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg">
           {!data && isLoading ? (
             <p className="p-4 text-sm text-muted-foreground">{t('Searching...')}</p>
+          ) : error ? (
+            <p role="status" className="p-4 text-sm text-muted-foreground">{t('Product search is temporarily unavailable.')}</p>
           ) : data && data.length > 0 ? (
-            <ul className="max-h-96 divide-y overflow-y-auto">
-              {data.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/product/${p.slug}`}
-                    onClick={() => {
-                      setOpen(false)
-                      setQuery('')
-                    }}
-                    className="flex items-center gap-3 p-3 hover:bg-accent"
-                  >
-                    <Image
-                      src={p.image}
-                      alt=""
-                      width={48}
-                      height={48}
-                      className="size-12 shrink-0 rounded-md bg-muted object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-sm font-medium">{p.name}</p>
-                      <Price price={p.price} comparePrice={p.comparePrice} size="sm" />
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="max-h-96 divide-y overflow-y-auto">
+                {data.map((p) => (
+                  <li key={p.id}>
+                    <Link
+                      href={`/product/${p.slug}`}
+                      onClick={() => {
+                        setOpen(false)
+                        setQuery('')
+                      }}
+                      className="flex items-center gap-3 p-3 hover:bg-accent"
+                    >
+                      <Image
+                        src={p.image}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="size-12 shrink-0 rounded-md bg-muted object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-medium">{p.name}</p>
+                        <Price price={p.price} comparePrice={p.comparePrice} size="sm" />
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link href={`/search?q=${encodeURIComponent(debounced)}`} onClick={() => setOpen(false)} className="block border-t p-3 text-center text-sm font-medium text-primary hover:bg-accent">
+                {t('View all results for')} “{debounced}”
+              </Link>
+            </>
           ) : (
             <p className="p-4 text-sm text-muted-foreground">
               {t('No products found for')} &ldquo;{debounced}&rdquo;.

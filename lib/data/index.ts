@@ -9,13 +9,13 @@ const orderShape=(o:RawOrder):Order=>({id:o.number,databaseId:String(o.id),custo
 export async function getHomepageConfig():Promise<HomeData>{return serverApi('/homepage')}
 export async function getCategories():Promise<Category[]>{return serverApi('/categories')}
 export async function getCategory(slug:string){return (await getCategories()).find(c=>c.slug===slug)}
-export async function getProducts(opts:{categorySlug?:string;subcategorySlug?:string}={}):Promise<Product[]>{const q=new URLSearchParams();if(opts.categorySlug)q.set('category',opts.categorySlug);if(opts.subcategorySlug)q.set('subcategory',opts.subcategorySlug);return serverApi(`/products?${q}`)}
+export async function getProducts(opts:{categorySlug?:string;subcategorySlug?:string;query?:string}={}):Promise<Product[]>{const q=new URLSearchParams();if(opts.categorySlug)q.set('category',opts.categorySlug);if(opts.subcategorySlug)q.set('subcategory',opts.subcategorySlug);if(opts.query?.trim())q.set('q',opts.query.trim());return serverApi(`/products?${q}`)}
 export async function getFeaturedProducts(){return serverApi<Product[]>('/products?featured=1')}
 export async function getNewProducts(){return serverApi<Product[]>('/products?new=1')}
 export async function getProduct(slug:string){try{return await serverApi<Product>(`/products/${encodeURIComponent(slug)}`)}catch{return undefined}}
 export async function getRelatedProducts(product:Product,limit=4){return (await getProducts({categorySlug:product.categorySlug})).filter(p=>p.id!==product.id).slice(0,limit)}
 export async function getReviews(_productId:string):Promise<Review[]>{return []}
-export async function searchProducts(query:string,limit=6){const q=query.trim();if(q.length<3)return [];return (await serverApi<Product[]>(`/products?q=${encodeURIComponent(q)}`)).slice(0,limit)}
+export async function searchProducts(query:string,limit=6){const q=query.trim().slice(0,120);if(q.length<3)return [];return (await getProducts({query:q})).slice(0,Math.min(Math.max(limit,1),20))}
 export async function getOrders():Promise<Order[]>{return (await serverApi<RawOrder[]>('/admin/orders')).map(orderShape)}
 export async function getOrder(id:string){return (await getOrders()).find(o=>o.id===id||o.databaseId===id)}
 export async function getCustomers():Promise<Customer[]>{const rows=await serverApi<Array<{id:number;name:string;email:string;phone:string|null;city:string|null;orders_count:number;spent:number;created_at:string;status:CustomerStatus}>>('/admin/customers');return rows.map(c=>({id:String(c.id),name:c.name,email:c.email,phone:c.phone??'',city:c.city??'',orders:c.orders_count,spent:Number(c.spent),joined:c.created_at.slice(0,10),status:c.status}))}

@@ -4,7 +4,7 @@ import { useLanguage } from '@/lib/language'
 
 type LocalizedTextProps = {
   text: string
-  as?: 'h2' | 'p' | 'span'
+  as?: 'h1' | 'h2' | 'p' | 'span'
   className?: string
   id?: string
 }
