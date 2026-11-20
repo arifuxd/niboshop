@@ -5,18 +5,14 @@ import { ProductSection } from '@/components/shop/product-section'
 import { LocalizedText } from '@/components/localized-text'
 import {
   getCategories,
-  getFeaturedProducts,
-  getNewProducts,
+  getProducts,
+  homepageSections,
   heroBanners,
   sideBanners,
 } from '@/lib/data'
 
 export default async function HomePage() {
-  const [categories, featured, newest] = await Promise.all([
-    getCategories(),
-    getFeaturedProducts(),
-    getNewProducts(),
-  ])
+  const [categories, allProducts] = await Promise.all([getCategories(), getProducts()])
 
   return (
     <>
@@ -41,17 +37,10 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <ProductSection
-        title="Featured Products"
-        description="Hand-picked bestsellers from our stores"
-        href="/category/smartphones"
-        products={featured.slice(0, 10)}
-      />
-      <ProductSection
-        title="New Arrivals"
-        description="Fresh in stock this week"
-        products={newest.slice(0, 5)}
-      />
+      {homepageSections.map((section) => {
+        const products = section.productIds.map((id) => allProducts.find((product) => product.id === id)).filter((product) => product !== undefined)
+        return <ProductSection key={section.id} title={section.title} description={section.description} products={products} />
+      })}
     </>
   )
 }
