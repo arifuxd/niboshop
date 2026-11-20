@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import { siteConfig } from '@/lib/site-config'
+import { useStoreSettings } from '@/lib/use-store-settings'
 import { cn } from '@/lib/utils'
 import { QuantityStepper } from './quantity-stepper'
 
@@ -24,16 +25,17 @@ const payments = [
 
 export function CheckoutForm() {
   const { items, subtotal, discount, count, clear, setQuantity } = useCart()
+  const { data: storeSettings } = useStoreSettings()
   const [zone, setZone] = React.useState<'inside' | 'outside'>('inside')
   const [payment, setPayment] = React.useState<string>('cod')
   const [placed, setPlaced] = React.useState<string | null>(null)
 
   const delivery =
-    items.length === 0 || subtotal >= siteConfig.freeShippingThreshold
+    items.length === 0 || subtotal >= storeSettings!.freeShippingThreshold || items.every((item) => item.freeShipping)
       ? 0
       : zone === 'inside'
-        ? siteConfig.deliveryCharge.insideDhaka
-        : siteConfig.deliveryCharge.outsideDhaka
+        ? storeSettings!.insideDhakaCharge
+        : storeSettings!.outsideDhakaCharge
   const total = subtotal + delivery
 
   if (placed) {
@@ -119,8 +121,8 @@ export function CheckoutForm() {
             >
               {(
                 [
-                  ['inside', 'Inside Dhaka', siteConfig.deliveryCharge.insideDhaka],
-                  ['outside', 'Outside Dhaka', siteConfig.deliveryCharge.outsideDhaka],
+                  ['inside', 'Inside Dhaka', storeSettings!.insideDhakaCharge],
+                  ['outside', 'Outside Dhaka', storeSettings!.outsideDhakaCharge],
                 ] as const
               ).map(([value, label, fee]) => (
                 <Label

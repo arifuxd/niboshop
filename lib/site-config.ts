@@ -1,4 +1,6 @@
 export const siteConfig = {
+  logoUrl: '/images/logo.webp',
+  address: 'Dhaka, Bangladesh',
   name: 'Niboshop',
   tagline: 'Genuine gadgets & home essentials',
   description:
@@ -49,5 +51,6 @@ export const adminNav = [
   { label: 'Categories', href: '/admin/categories', icon: 'tags' },
   { label: 'Orders', href: '/admin/orders', icon: 'shopping-bag' },
   { label: 'Customers', href: '/admin/customers', icon: 'users' },
+  { label: 'Store settings', href: '/admin/settings', icon: 'settings' },
   { label: 'Profile & security', href: '/admin/profile', icon: 'user' },
 ] as const

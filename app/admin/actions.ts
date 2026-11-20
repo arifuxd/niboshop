@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { updateStoreSettings } from '@/lib/store-settings'
 import { redirect } from 'next/navigation'
 import {
   createCategory,
@@ -25,6 +26,24 @@ export type FormState = {
 const orderStatuses: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? '').trim()
+
+export async function saveStoreSettingsAction(_prev: FormState, data: FormData): Promise<FormState> {
+  const address = text(data, 'address')
+  const phone = text(data, 'phone')
+  const email = text(data, 'email')
+  const hours = text(data, 'hours')
+  const logoUrl = text(data, 'logoUrl')
+  const insideDhakaCharge = Number(text(data, 'insideDhakaCharge'))
+  const outsideDhakaCharge = Number(text(data, 'outsideDhakaCharge'))
+  const freeShippingThreshold = Number(text(data, 'freeShippingThreshold'))
+  const validLogo = logoUrl.startsWith('/') || logoUrl.startsWith('https://')
+  if (!address || address.length > 200 || !phone || phone.length > 30 || !/^\S+@\S+\.\S+$/.test(email) || email.length > 254 || !hours || hours.length > 100 || !validLogo || [insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold].some((amount) => !Number.isSafeInteger(amount) || amount < 0)) {
+    return { error: 'Check the store details and enter valid non-negative whole-number delivery amounts.' }
+  }
+  updateStoreSettings({ logoUrl, address, phone, email, hours, insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold })
+  revalidatePath('/', 'layout')
+  return { success: 'Store settings saved.' }
+}
 
 export async function createCategoryAction(data: FormData) {
   const name = text(data, 'name')
@@ -109,6 +128,7 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
     highlights,
     isNew: data.get('isNew') === 'on',
     isFeatured: data.get('isFeatured') === 'on',
+    freeShipping: data.get('freeShipping') === 'on',
   })
   revalidatePath('/', 'layout')
   redirect('/admin/products')

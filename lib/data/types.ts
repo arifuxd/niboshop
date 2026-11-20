@@ -29,6 +29,7 @@ export type Product = {
   description: string
   isNew?: boolean
   isFeatured?: boolean
+  freeShipping?: boolean
 }
 
 export type Review = {

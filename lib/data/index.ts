@@ -109,7 +109,7 @@ export type NewProductInput = Pick<
   Product,
   'name' | 'brand' | 'categorySlug' | 'subcategorySlug' | 'price' | 'stock' | 'image' | 'images' | 'description' | 'highlights'
 > &
-  Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured'>>
+  Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured' | 'freeShipping'>>
 
 function slugify(value: string) {
   return value

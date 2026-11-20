@@ -299,6 +299,13 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                 <Switch id="isFeatured" name="isFeatured" />
                 <FieldLabel htmlFor="isFeatured">Show in Featured</FieldLabel>
               </Field>
+              <Field orientation="horizontal">
+                <Switch id="freeShipping" name="freeShipping" />
+                <div className="flex flex-col gap-1">
+                  <FieldLabel htmlFor="freeShipping">Free shipping</FieldLabel>
+                  <FieldDescription>Waive delivery when the cart contains only free-shipping products.</FieldDescription>
+                </div>
+              </Field>
             </FieldGroup>
           </CardContent>
         </Card>

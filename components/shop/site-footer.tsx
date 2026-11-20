@@ -5,10 +5,12 @@ import { ClockIcon, MailIcon, PhoneIcon } from 'lucide-react'
 
 import { footerLinks, siteConfig } from '@/lib/site-config'
 import { useLanguage } from '@/lib/language'
+import { useStoreSettings } from '@/lib/use-store-settings'
 import { Logo } from './logo'
 
 export function SiteFooter() {
   const { t } = useLanguage()
+  const { data: settings } = useStoreSettings()
 
   return (
     <footer className="mt-12 bg-footer text-footer-foreground">
@@ -19,15 +21,15 @@ export function SiteFooter() {
           <ul className="flex flex-col gap-2 text-sm">
             <li className="flex items-center gap-2">
               <PhoneIcon className="size-4 shrink-0" aria-hidden="true" />
-              <a href={`tel:${siteConfig.contact.phone}`}>{siteConfig.contact.phone}</a>
+              <a href={`tel:${settings!.phone}`}>{settings!.phone}</a>
             </li>
             <li className="flex items-center gap-2">
               <MailIcon className="size-4 shrink-0" aria-hidden="true" />
-              <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>
+              <a href={`mailto:${settings!.email}`}>{settings!.email}</a>
             </li>
             <li className="flex items-center gap-2">
               <ClockIcon className="size-4 shrink-0" aria-hidden="true" />
-              <span>{siteConfig.contact.hours}</span>
+              <span>{settings!.hours}</span>
             </li>
           </ul>
         </div>
