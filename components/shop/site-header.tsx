@@ -87,6 +87,12 @@ export async function SiteHeader() {
                   </div>
                 ))}
               </nav>
+              <div className="mx-4 mt-2 flex items-center justify-between border-t pt-4">
+                <span className="text-sm font-medium">
+                  <LocalizedText text="Choose language" />
+                </span>
+                <LanguageSwitcher className="bg-header text-header-foreground" />
+              </div>
             </SheetContent>
           </Sheet>
 
@@ -95,7 +101,9 @@ export async function SiteHeader() {
           <SearchBox className="hidden flex-1 md:block md:max-w-2xl" />
 
           <div className="ml-auto flex items-center gap-1">
-            <LanguageSwitcher />
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
             <AccountAccess />
             <CartButton />
           </div>
