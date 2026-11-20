@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { SearchIcon, XIcon } from 'lucide-react'
+import { useLanguage } from '@/lib/language'
 import { Price } from './price'
 
 type SearchResult = {
@@ -19,6 +20,7 @@ type SearchResult = {
 const fetcher = (url: string) => fetch(url).then((r) => r.json() as Promise<SearchResult[]>)
 
 export function SearchBox({ className }: { className?: string }) {
+  const { t } = useLanguage()
   const [query, setQuery] = React.useState('')
   const [debounced, setDebounced] = React.useState('')
   const [open, setOpen] = React.useState(false)
@@ -59,8 +61,8 @@ export function SearchBox({ className }: { className?: string }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-          placeholder="Search for products..."
-          aria-label="Search products"
+          placeholder={t('Search for products...')}
+          aria-label={t('Search products')}
           className="h-full flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
@@ -70,7 +72,7 @@ export function SearchBox({ className }: { className?: string }) {
               setQuery('')
               setOpen(false)
             }}
-            aria-label="Clear search"
+            aria-label={t('Clear search')}
             className="text-muted-foreground hover:text-foreground"
           >
             <XIcon className="size-4" />
@@ -81,7 +83,7 @@ export function SearchBox({ className }: { className?: string }) {
       {showPanel && (
         <div className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg">
           {!data && isLoading ? (
-            <p className="p-4 text-sm text-muted-foreground">Searching...</p>
+            <p className="p-4 text-sm text-muted-foreground">{t('Searching...')}</p>
           ) : data && data.length > 0 ? (
             <ul className="max-h-96 divide-y overflow-y-auto">
               {data.map((p) => (
@@ -111,7 +113,7 @@ export function SearchBox({ className }: { className?: string }) {
             </ul>
           ) : (
             <p className="p-4 text-sm text-muted-foreground">
-              No products found for &ldquo;{debounced}&rdquo;.
+              {t('No products found for')} &ldquo;{debounced}&rdquo;.
             </p>
           )}
         </div>
