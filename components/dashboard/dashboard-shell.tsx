@@ -26,7 +26,7 @@ export function DashboardShell({
     href === rootHref ? pathname === href : pathname.startsWith(href)
 
   return (
-    <div className="min-h-svh bg-muted/40">
+    <div className="min-h-svh overflow-x-clip bg-muted/40">
       <header className="sticky top-0 z-30 border-b bg-header text-header-foreground">
         <div className="container-shop flex h-14 items-center gap-4">
           <Logo />
@@ -46,23 +46,28 @@ export function DashboardShell({
         </div>
       </header>
 
-      <div className="container-shop grid gap-6 py-6 lg:grid-cols-[220px_1fr]">
-        <nav aria-label={`${title} navigation`} className="lg:sticky lg:top-20 lg:h-fit">
-          <ul className="flex gap-1 overflow-x-auto scrollbar-none lg:flex-col">
+      <div className="container-shop grid min-w-0 gap-5 py-5 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 lg:py-6">
+        <nav aria-label={`${title} navigation`} className="min-w-0 lg:sticky lg:top-20 lg:h-fit">
+          <details open className="group overflow-hidden rounded-xl border bg-card shadow-sm lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-4 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center gap-2"><NamedIcon name="user" className="size-4" />{title} details</span>
+              <span className="text-muted-foreground transition-transform group-open:rotate-180">⌄</span>
+            </summary>
+            <ul className="border-t p-1.5">
+              {nav.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} className={cn('flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors', isActive(item.href) ? 'bg-accent text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
+                    <NamedIcon name={item.icon} className="size-4 shrink-0" />{item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </details>
+          <ul className="hidden overflow-hidden rounded-xl border bg-card p-1.5 shadow-sm lg:flex lg:flex-col">
             {nav.map((item) => (
               <li key={item.href}>
-                <Link
-                  href={item.href}
-                  aria-current={isActive(item.href) ? 'page' : undefined}
-                  className={cn(
-                    'flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                    isActive(item.href)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                  )}
-                >
-                  <NamedIcon name={item.icon} className="size-4" />
-                  {item.label}
+                <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} className={cn('flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors', isActive(item.href) ? 'bg-accent text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
+                  <NamedIcon name={item.icon} className="size-4 shrink-0" />{item.label}
                 </Link>
               </li>
             ))}

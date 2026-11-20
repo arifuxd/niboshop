@@ -48,4 +48,5 @@ export const adminNav = [
   { label: 'Products', href: '/admin/products', icon: 'boxes' },
   { label: 'Orders', href: '/admin/orders', icon: 'shopping-bag' },
   { label: 'Customers', href: '/admin/customers', icon: 'users' },
+  { label: 'Profile & security', href: '/admin/profile', icon: 'user' },
 ] as const

@@ -75,7 +75,7 @@ export async function SiteHeader() {
 
           <div className="ml-auto flex items-center gap-1">
             <Link
-              href="/account"
+              href="/login"
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
                 'gap-2 text-header-foreground hover:bg-white/10 hover:text-header-foreground',
