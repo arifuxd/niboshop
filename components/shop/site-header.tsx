@@ -39,7 +39,7 @@ export async function SiteHeader() {
       </div>
 
       <div className="bg-header text-header-foreground">
-        <div className="container-shop flex min-h-16 items-center gap-3 py-2.5 md:gap-6">
+        <div className="container-shop flex min-h-[84px] items-center gap-3 py-2.5 md:gap-6">
           <Sheet>
             <SheetTrigger
               render={
