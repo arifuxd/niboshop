@@ -9,6 +9,7 @@ import { ProductPurchase } from '@/components/shop/product-purchase'
 import { ProductGallery } from '@/components/shop/product-gallery'
 import { ProductPageScrollReset } from '@/components/shop/product-page-scroll-reset'
 import { ProductSection } from '@/components/shop/product-section'
+import { LocalizedText } from '@/components/localized-text'
 import { StarRating } from '@/components/shop/star-rating'
 import { getCategory, getProduct, getRelatedProducts } from '@/lib/data'
 
@@ -113,21 +114,16 @@ export default async function ProductPage({
 
           <TabsContent value="description" className="p-5 md:p-7">
             <section aria-labelledby="product-description-heading">
-              <div className="mb-4 flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <BookOpenTextIcon className="size-5" aria-hidden="true" />
                 </span>
-                <div>
-                  <h2 id="product-description-heading" className="text-lg font-semibold tracking-tight md:text-xl">
-                    Product description
-                  </h2>
-                  <p className="text-sm text-muted-foreground">A closer look at the details and features</p>
-                </div>
-              </div>
-              <div className="flex max-w-4xl flex-col gap-3 border-l-2 border-primary/20 pl-4 text-sm leading-7 text-foreground/75 md:pl-5">
-                {product.description.split('\n\n').map((para) => (
-                  <p key={para}>{para}</p>
-                ))}
+                <LocalizedText
+                  as="h2"
+                  id="product-description-heading"
+                  className="text-lg font-semibold tracking-tight md:text-xl"
+                  text="Product description"
+                />
               </div>
             </section>
           </TabsContent>

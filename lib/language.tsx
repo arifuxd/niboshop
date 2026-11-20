@@ -24,6 +24,7 @@ const translations: Record<string, string> = {
   'Addresses': 'ঠিকানা',
   'Wishlist': 'পছন্দের তালিকা',
   'Details': 'বিস্তারিত',
+  'Product description': 'পণ্যের বিবরণ',
   'Open menu': 'মেনু খুলুন',
   'Browse categories': 'ক্যাটাগরি দেখুন',
   'Hotline:': 'হটলাইন:',
