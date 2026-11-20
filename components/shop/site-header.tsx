@@ -59,7 +59,7 @@ export async function SiteHeader() {
                 <SheetDescription className="sr-only">Browse categories</SheetDescription>
               </SheetHeader>
               <MobileCategoryMenu categories={categories} />
-              <div className="mx-4 mt-2 border-t pt-3">
+              <div className="mx-4 mt-2 mb-6 border-t pt-3">
                 <AccountAccess showLabel menuStyle />
                 <div className="mt-3 flex items-center justify-between rounded-lg bg-header px-3 py-2 text-header-foreground">
                   <span className="whitespace-nowrap text-sm font-medium">
@@ -76,10 +76,10 @@ export async function SiteHeader() {
           <SearchBox className="hidden flex-1 md:block md:max-w-2xl" />
 
           <div className="ml-auto flex items-center gap-1">
-            <LanguageSwitcher className="shrink-0" />
-            <div className="hidden sm:block">
-              <AccountAccess />
+            <div className="hidden md:block">
+              <LanguageSwitcher className="shrink-0" />
             </div>
+            <AccountAccess />
             <CartButton />
           </div>
         </div>
