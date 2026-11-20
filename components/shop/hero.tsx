@@ -57,7 +57,7 @@ function HeroCarousel({ banners }: { banners: Banner[] }) {
       <Button
         variant="secondary"
         size="icon"
-        className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute left-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 active:-translate-y-1/2"
         onClick={() => go(index - 1)}
         aria-label="Previous slide"
       >
@@ -66,7 +66,7 @@ function HeroCarousel({ banners }: { banners: Banner[] }) {
       <Button
         variant="secondary"
         size="icon"
-        className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 active:-translate-y-1/2"
         onClick={() => go(index + 1)}
         aria-label="Next slide"
       >
