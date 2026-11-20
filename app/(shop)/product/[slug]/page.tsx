@@ -1,17 +1,16 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { CheckCircle2Icon, ShieldCheckIcon, TruckIcon } from 'lucide-react'
+import { BookOpenTextIcon, CheckCircle2Icon, ShieldCheckIcon, TruckIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Breadcrumbs } from '@/components/shop/breadcrumbs'
 import { Price } from '@/components/shop/price'
 import { ProductPurchase } from '@/components/shop/product-purchase'
 import { ProductGallery } from '@/components/shop/product-gallery'
+import { ProductPageScrollReset } from '@/components/shop/product-page-scroll-reset'
 import { ProductSection } from '@/components/shop/product-section'
 import { StarRating } from '@/components/shop/star-rating'
-import { formatDate } from '@/lib/format'
-import { getCategory, getProduct, getRelatedProducts, getReviews } from '@/lib/data'
+import { getCategory, getProduct, getRelatedProducts } from '@/lib/data'
 
 export async function generateMetadata({
   params,
@@ -32,20 +31,15 @@ export default async function ProductPage({
   const product = await getProduct(slug)
   if (!product) notFound()
 
-  const [category, related, reviews] = await Promise.all([
+  const [category, related] = await Promise.all([
     getCategory(product.categorySlug),
     getRelatedProducts(product, 5),
-    getReviews(product.id),
   ])
-
-  const distribution = [5, 4, 3, 2, 1].map((star) => ({
-    star,
-    count: reviews.filter((r) => r.rating === star).length,
-  }))
 
   return (
     <>
       <div className="container-shop py-4">
+        <ProductPageScrollReset />
         <Breadcrumbs
           items={[
             ...(category ? [{ label: category.name, href: `/category/${category.slug}` }] : []),
@@ -106,52 +100,36 @@ export default async function ProductPage({
           </div>
         </div>
 
-        <Tabs defaultValue="description" className="mt-6 rounded-xl border bg-card p-4 md:p-6">
-          <TabsList>
-            <TabsTrigger value="description">Description</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews ({product.reviewCount})</TabsTrigger>
+        <Tabs defaultValue="description" className="mt-6 overflow-hidden rounded-xl border bg-card">
+          <TabsList className="h-auto w-full justify-start rounded-none border-b bg-muted/40 px-4 py-3 md:px-6">
+            <TabsTrigger
+              value="description"
+              className="h-auto flex-none gap-2 rounded-lg border border-primary/15 bg-background px-4 py-2.5 text-base font-semibold text-primary shadow-sm data-active:border-primary/30 data-active:bg-primary/5 data-active:text-primary"
+            >
+              <BookOpenTextIcon className="size-4" aria-hidden="true" />
+              Description
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="description" className="pt-4">
-            <div className="flex max-w-3xl flex-col gap-3 text-sm leading-7 text-muted-foreground">
-              {product.description.split('\n\n').map((para) => (
-                <p key={para}>{para}</p>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reviews" className="pt-4">
-            <div className="grid gap-8 md:grid-cols-[240px_1fr]">
-              <div className="flex flex-col gap-3">
-                <p className="text-5xl font-semibold">{product.rating.toFixed(1)}</p>
-                <StarRating rating={product.rating} />
-                <p className="text-sm text-muted-foreground">Based on {product.reviewCount} reviews</p>
-                <ul className="flex flex-col gap-1.5">
-                  {distribution.map((d) => (
-                    <li key={d.star} className="flex items-center gap-2 text-xs">
-                      <span className="w-3">{d.star}</span>
-                      <Progress value={(d.count / reviews.length) * 100} className="h-1.5" />
-                      <span className="w-3 text-muted-foreground">{d.count}</span>
-                    </li>
-                  ))}
-                </ul>
+          <TabsContent value="description" className="p-5 md:p-7">
+            <section aria-labelledby="product-description-heading">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <BookOpenTextIcon className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <h2 id="product-description-heading" className="text-lg font-semibold tracking-tight md:text-xl">
+                    Product description
+                  </h2>
+                  <p className="text-sm text-muted-foreground">A closer look at the details and features</p>
+                </div>
               </div>
-              <ul className="flex flex-col divide-y">
-                {reviews.map((r) => (
-                  <li key={r.id} className="flex flex-col gap-1.5 py-4 first:pt-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StarRating rating={r.rating} />
-                      <span className="text-sm font-medium">{r.title}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{r.body}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {r.author} • {formatDate(r.date)}
-                      {r.verified && <span className="text-success"> • Verified purchase</span>}
-                    </p>
-                  </li>
+              <div className="flex max-w-4xl flex-col gap-3 border-l-2 border-primary/20 pl-4 text-sm leading-7 text-foreground/75 md:pl-5">
+                {product.description.split('\n\n').map((para) => (
+                  <p key={para}>{para}</p>
                 ))}
-              </ul>
-            </div>
+              </div>
+            </section>
           </TabsContent>
         </Tabs>
       </div>
