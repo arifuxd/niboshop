@@ -86,7 +86,7 @@ export async function getCustomerOrders(customerId = currentCustomerId) {
  */
 export type NewProductInput = Pick<
   Product,
-  'name' | 'brand' | 'categorySlug' | 'price' | 'stock' | 'image' | 'description' | 'highlights'
+  'name' | 'brand' | 'categorySlug' | 'price' | 'stock' | 'image' | 'images' | 'description' | 'highlights'
 > &
   Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured'>>
 
@@ -105,7 +105,7 @@ export async function createProduct(input: NewProductInput) {
     ...input,
     id: `p-${crypto.randomUUID().slice(0, 8)}`,
     slug,
-    images: [input.image],
+    images: input.images,
     rating: 0,
     reviewCount: 0,
   }

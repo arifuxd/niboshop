@@ -34,6 +34,13 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
   const comparePrice = comparePriceRaw ? Number(comparePriceRaw) : undefined
   const stock = Number(text(data, 'stock'))
   const image = text(data, 'image')
+  let images: string[] = []
+  try {
+    const parsed = JSON.parse(text(data, 'images'))
+    if (Array.isArray(parsed) && parsed.every((src) => typeof src === 'string')) images = parsed
+  } catch {
+    fieldErrors.image = 'Upload product images.'
+  }
   const description = text(data, 'description')
   const highlights = text(data, 'highlights')
     .split('\n')
@@ -47,8 +54,8 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
   if (comparePrice !== undefined && (!Number.isFinite(comparePrice) || comparePrice <= price))
     fieldErrors.comparePrice = 'Regular price must be higher than the sale price.'
   if (!Number.isInteger(stock) || stock < 0) fieldErrors.stock = 'Enter a whole number, 0 or more.'
-  if (!image.startsWith('/') && !image.startsWith('http'))
-    fieldErrors.image = 'Choose an image or enter a valid image URL.'
+  if (images.length < 1 || images.length > 6 || images[0] !== image || images.some((src) => !src.startsWith('https://')))
+    fieldErrors.image = 'Upload 1 to 6 valid product images and choose a main image.'
   if (description.length < 10) fieldErrors.description = 'Write a short description.'
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -63,6 +70,7 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
     comparePrice,
     stock,
     image,
+    images,
     description,
     highlights,
     isNew: data.get('isNew') === 'on',
