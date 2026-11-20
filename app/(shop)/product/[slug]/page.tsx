@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { CheckCircle2Icon, ShieldCheckIcon, TruckIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Breadcrumbs } from '@/components/shop/breadcrumbs'
 import { Price } from '@/components/shop/price'
 import { ProductPurchase } from '@/components/shop/product-purchase'
+import { ProductGallery } from '@/components/shop/product-gallery'
 import { ProductSection } from '@/components/shop/product-section'
 import { StarRating } from '@/components/shop/star-rating'
 import { formatDate } from '@/lib/format'
@@ -54,18 +54,7 @@ export default async function ProductPage({
         />
 
         <div className="mt-4 grid gap-8 rounded-xl border bg-card p-4 md:p-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-3">
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                priority
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          </div>
+          <ProductGallery images={product.images} name={product.name} />
 
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRightIcon } from 'lucide-react'
 import type { Product } from '@/lib/data/types'
+import { LocalizedText } from '@/components/localized-text'
 import { ProductCard } from './product-card'
 
 export function ProductGrid({ products }: { products: Product[] }) {
@@ -28,17 +29,15 @@ export function ProductSection({
     <section className="container-shop py-6 md:py-8">
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight md:text-2xl">{title}</h2>
-          {description && (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-          )}
+          <LocalizedText as="h2" text={title} className="text-xl font-semibold tracking-tight md:text-2xl" />
+          {description && <LocalizedText as="p" text={description} className="mt-1 text-sm text-muted-foreground" />}
         </div>
         {href && (
           <Link
             href={href}
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
-            View all
+            <LocalizedText text="View all" />
             <ArrowRightIcon className="size-4" />
           </Link>
         )}

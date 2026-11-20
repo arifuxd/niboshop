@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Hero } from '@/components/shop/hero'
 import { NamedIcon } from '@/components/shop/category-icon'
 import { ProductSection } from '@/components/shop/product-section'
+import { LocalizedText } from '@/components/localized-text'
 import {
   getCategories,
   getFeaturedProducts,
@@ -22,9 +23,7 @@ export default async function HomePage() {
       <Hero banners={heroBanners} sideBanners={sideBanners} />
 
       <section className="container-shop py-4" aria-labelledby="shop-by-category">
-        <h2 id="shop-by-category" className="mb-4 text-xl font-semibold tracking-tight md:text-2xl">
-          Shop by Category
-        </h2>
+        <LocalizedText as="h2" id="shop-by-category" text="Shop by Category" className="mb-4 text-xl font-semibold tracking-tight md:text-2xl" />
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           {categories.map((c) => (
             <li key={c.slug}>

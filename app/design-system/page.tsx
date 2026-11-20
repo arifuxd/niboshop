@@ -88,7 +88,7 @@ export default async function DesignSystemPage() {
         </div>
       </Section>
 
-      <Section title="Typography" description="Geist Sans for all text, Geist Mono for code.">
+      <Section title="Typography" description="Geist Sans for English, Noto Sans Bengali for Bangla, and Geist Mono for code.">
         <Card>
           <CardContent className="flex flex-col gap-2">
             <p className="text-4xl font-bold">Heading 1 — 4xl bold</p>

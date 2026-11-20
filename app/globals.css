@@ -161,6 +161,10 @@
   }
 }
 
+html[lang='bn'] body {
+  font-family: var(--font-noto-bengali), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 @layer utilities {
   .container-shop {
     @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6;

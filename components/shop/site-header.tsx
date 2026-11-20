@@ -1,6 +1,9 @@
 import Link from 'next/link'
-import { MenuIcon, UserIcon } from 'lucide-react'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { MenuIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { LanguageSwitcher } from '@/components/language-switcher'
+import { AccountAccess } from './account-access'
+import { LocalizedText } from '@/components/localized-text'
 import {
   Sheet,
   SheetContent,
@@ -11,7 +14,6 @@ import {
 } from '@/components/ui/sheet'
 import { getCategories } from '@/lib/data'
 import { siteConfig } from '@/lib/site-config'
-import { cn } from '@/lib/utils'
 import { CartButton } from './cart-sheet'
 import { NamedIcon } from './category-icon'
 import { Logo } from './logo'
@@ -24,9 +26,11 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 w-full">
       <div className="hidden bg-primary text-xs text-primary-foreground md:block">
         <div className="container-shop flex h-8 items-center justify-between">
-          <p>{siteConfig.topBar.join('  •  ')}</p>
+          <p>{siteConfig.topBar.map((item, index) => (
+            <span key={item}>{index > 0 && <span aria-hidden="true">  •  </span>}<LocalizedText text={item} /></span>
+          ))}</p>
           <p>
-            Hotline:{' '}
+            <LocalizedText text="Hotline:" />{' '}
             <a href={`tel:${siteConfig.contact.phone}`} className="font-medium">
               {siteConfig.contact.phone}
             </a>
@@ -74,16 +78,8 @@ export async function SiteHeader() {
           <SearchBox className="hidden flex-1 md:block md:max-w-2xl" />
 
           <div className="ml-auto flex items-center gap-1">
-            <Link
-              href="/account"
-              className={cn(
-                buttonVariants({ variant: 'ghost' }),
-                'gap-2 text-header-foreground hover:bg-white/10 hover:text-header-foreground',
-              )}
-            >
-              <UserIcon data-icon="inline-start" />
-              <span className="hidden sm:inline">Account</span>
-            </Link>
+            <LanguageSwitcher />
+            <AccountAccess />
             <CartButton />
           </div>
         </div>

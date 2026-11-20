@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/lib/cart'
+import { useLanguage } from '@/lib/language'
 import { discountPercent } from '@/lib/format'
 import type { Product } from '@/lib/data/types'
 import { Price } from './price'
@@ -15,6 +16,7 @@ import { StarRating } from './star-rating'
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart()
+  const { t } = useLanguage()
   const router = useRouter()
   const off = discountPercent(product.price, product.comparePrice)
   const soldOut = product.stock === 0
@@ -34,7 +36,7 @@ export function ProductCard({ product }: { product: Product }) {
         />
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {off > 0 && <Badge className="bg-sale text-sale-foreground">-{off}%</Badge>}
-          {product.isNew && <Badge variant="secondary">New</Badge>}
+          {product.isNew && <Badge variant="secondary">{t('New')}</Badge>}
         </div>
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-3">
@@ -56,11 +58,11 @@ export function ProductCard({ product }: { product: Product }) {
             disabled={soldOut}
             onClick={() => {
               addItem(product)
-              toast.success('Added to cart')
+              toast.success(t('Added to cart'))
             }}
           >
             <ShoppingCartIcon data-icon="inline-start" />
-            Add to Cart
+            {t('Add to Cart')}
           </Button>
           <Button
             size="sm"
@@ -72,7 +74,7 @@ export function ProductCard({ product }: { product: Product }) {
               router.push('/checkout')
             }}
           >
-            Buy Now
+            {t('Buy Now')}
           </Button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getCurrentCustomer } from '@/lib/data'
+import { PasswordUpdateCard } from '@/components/dashboard/password-update-card'
 
 export const metadata: Metadata = { title: 'Profile' }
 
@@ -34,6 +35,7 @@ export default async function ProfilePage() {
           </form>
         </CardContent>
       </Card>
+      <PasswordUpdateCard />
     </>
   )
 }

@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { useCart } from '@/lib/cart'
+import { useLanguage } from '@/lib/language'
 import { formatPrice } from '@/lib/format'
 import { siteConfig } from '@/lib/site-config'
 import { cn } from '@/lib/utils'
@@ -21,15 +22,16 @@ import { QuantityStepper } from './quantity-stepper'
 
 export function CartButton() {
   const { count, setOpen } = useCart()
+  const { t } = useLanguage()
   return (
     <Button
       variant="ghost"
       className="relative gap-2 text-header-foreground hover:bg-white/10 hover:text-header-foreground"
       onClick={() => setOpen(true)}
-      aria-label={`Open cart, ${count} items`}
+      aria-label={`${t('Open cart')}, ${count} ${t('items')}`}
     >
       <ShoppingCartIcon data-icon="inline-start" />
-      <span className="hidden sm:inline">Cart</span>
+      <span className="hidden sm:inline">{t('Cart')}</span>
       <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-sale text-[11px] font-semibold text-sale-foreground">
         {count}
       </span>
@@ -40,18 +42,19 @@ export function CartButton() {
 export function CartSheet() {
   const { items, isOpen, setOpen, setQuantity, removeItem, subtotal, discount, delivery, total, count } =
     useCart()
+  const { t } = useLanguage()
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
       <SheetContent side="right" showCloseButton={false} className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
         <SheetHeader className="flex-row items-center justify-between border-b p-4">
           <div>
-            <SheetTitle>Shopping Cart ({count})</SheetTitle>
+            <SheetTitle>{t('Shopping Cart')} ({count})</SheetTitle>
             <SheetDescription className="sr-only">
-              Products you have added to your cart
+              {t('Products you have added to your cart')}
             </SheetDescription>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close cart">
+          <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={t('Close cart')}>
             <XIcon />
           </Button>
         </SheetHeader>
@@ -61,9 +64,9 @@ export function CartSheet() {
             <div className="flex size-16 items-center justify-center rounded-full bg-muted">
               <ShoppingCartIcon className="size-7 text-muted-foreground" />
             </div>
-            <p className="font-medium">Your cart is empty</p>
-            <p className="text-sm text-muted-foreground">Add some products to get started.</p>
-            <Button onClick={() => setOpen(false)}>Continue Shopping</Button>
+            <p className="font-medium">{t('Your cart is empty')}</p>
+            <p className="text-sm text-muted-foreground">{t('Add some products to get started.')}</p>
+            <Button onClick={() => setOpen(false)}>{t('Continue Shopping')}</Button>
           </div>
         ) : (
           <>
@@ -104,7 +107,7 @@ export function CartSheet() {
                           size="icon"
                           className="size-7 text-muted-foreground hover:text-destructive"
                           onClick={() => removeItem(item.productId)}
-                          aria-label={`Remove ${item.name}`}
+                          aria-label={`${t('Remove')} ${item.name}`}
                         >
                           <Trash2Icon />
                         </Button>
@@ -116,31 +119,31 @@ export function CartSheet() {
             </ScrollArea>
 
             <div className="flex flex-col gap-3 border-t bg-muted/40 p-4">
-              <h3 className="text-sm font-semibold">Order Summary</h3>
+              <h3 className="text-sm font-semibold">{t('Order Summary')}</h3>
               <dl className="flex flex-col gap-1.5 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Subtotal</dt>
+                  <dt className="text-muted-foreground">{t('Subtotal')}</dt>
                   <dd>{formatPrice(subtotal)}</dd>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">You save</dt>
+                    <dt className="text-muted-foreground">{t('You save')}</dt>
                     <dd className="text-success">-{formatPrice(discount)}</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Delivery</dt>
-                  <dd>{delivery === 0 ? 'Free' : formatPrice(delivery)}</dd>
+                  <dt className="text-muted-foreground">{t('Delivery')}</dt>
+                  <dd>{delivery === 0 ? t('Free') : formatPrice(delivery)}</dd>
                 </div>
                 <Separator className="my-1" />
                 <div className="flex justify-between text-base font-semibold">
-                  <dt>Total</dt>
+                  <dt>{t('Total')}</dt>
                   <dd>{formatPrice(total)}</dd>
                 </div>
               </dl>
               {delivery > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Add {formatPrice(siteConfig.freeShippingThreshold - subtotal)} more for free delivery.
+                  {t('Add more for free delivery')}: {formatPrice(siteConfig.freeShippingThreshold - subtotal)}
                 </p>
               )}
               <Link
@@ -148,7 +151,7 @@ export function CartSheet() {
                 onClick={() => setOpen(false)}
                 className={cn(buttonVariants({ size: 'lg' }), 'w-full')}
               >
-                Proceed to Checkout
+                {t('Proceed to Checkout')}
               </Link>
             </div>
           </>
