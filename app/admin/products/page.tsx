@@ -48,7 +48,10 @@ export default async function AdminProductsPage() {
                 <p className="line-clamp-2 font-medium">{p.name}</p>
                 <p className="mt-1 truncate text-sm text-muted-foreground">{categoryName(p.categorySlug, p.subcategorySlug)}</p>
               </div>
-              <DeleteProductButton id={p.id} name={p.name} />
+              <div className="flex shrink-0 items-center gap-1">
+                <Link href={`/admin/products/${p.slug}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>Edit</Link>
+                <DeleteProductButton id={p.id} name={p.name} />
+              </div>
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 border-t pt-3 text-sm">
               <div><dt className="text-muted-foreground">Price</dt><dd className="font-semibold">{formatPrice(p.price)}</dd></div>
@@ -68,7 +71,7 @@ export default async function AdminProductsPage() {
                   <TableCell><div className="flex items-center gap-3"><Image src={p.image} alt="" width={40} height={40} className="size-10 rounded-md bg-muted object-cover" /><span className="line-clamp-1 max-w-xs font-medium">{p.name}</span></div></TableCell>
                   <TableCell>{categoryName(p.categorySlug, p.subcategorySlug)}</TableCell><TableCell>{formatPrice(p.price)}</TableCell><TableCell>{p.stock}</TableCell>
                   <TableCell>{p.stock === 0 ? <Badge variant="destructive">Out of stock</Badge> : p.stock < 10 ? <Badge variant="secondary">Low stock</Badge> : <Badge variant="secondary" className="text-success">Active</Badge>}</TableCell>
-                  <TableCell className="text-right"><DeleteProductButton id={p.id} name={p.name} /></TableCell>
+                  <TableCell className="text-right"><div className="flex items-center justify-end gap-1"><Link href={`/admin/products/${p.slug}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>Edit</Link><DeleteProductButton id={p.id} name={p.name} /></div></TableCell>
                 </TableRow>
               ))}
             </TableBody>

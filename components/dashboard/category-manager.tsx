@@ -1,25 +1,16 @@
 import { createCategoryAction, createSubcategoryAction } from '@/app/admin/actions'
+import { CategoryIconPicker } from '@/components/dashboard/category-icon-picker'
+import { CategoryEditForm } from '@/components/dashboard/category-edit-form'
+import { DeleteCategoryButton } from '@/components/dashboard/delete-category-button'
 import { NamedIcon } from '@/components/shop/category-icon'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { NativeSelect } from '@/components/ui/native-select'
 import type { Category } from '@/lib/data'
 
-const iconOptions = [
-  ['smartphone', 'Smartphone'],
-  ['tablet', 'Tablet'],
-  ['laptop', 'Laptop'],
-  ['watch', 'Watch'],
-  ['headphones', 'Audio'],
-  ['battery-charging', 'Power'],
-  ['gamepad-2', 'Gaming'],
-  ['cooking-pot', 'Home'],
-]
-
-export function CategoryManager({ categories }: { categories: Category[] }) {
+export function CategoryManager({ categories, productCategorySlugs }: { categories: Category[]; productCategorySlugs: string[] }) {
   return (
     <div className="grid min-w-0 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <section className="flex flex-col gap-4">
@@ -41,11 +32,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="category-icon">Icon</FieldLabel>
-                  <NativeSelect id="category-icon" name="icon" defaultValue="smartphone">
-                    {iconOptions.map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
-                  </NativeSelect>
+                  <CategoryIconPicker />
                 </Field>
                 <Button type="submit" className="w-full">Add category</Button>
               </FieldGroup>
@@ -70,9 +57,16 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                   <CardDescription className="mt-1">{category.description}</CardDescription>
                 </div>
               </div>
-              <Badge variant="secondary">{category.subcategories.length} subcategories</Badge>
+              <div className="flex shrink-0 items-center gap-1">
+                <Badge variant="secondary">{category.subcategories.length} subcategories</Badge>
+                <DeleteCategoryButton slug={category.slug} name={category.name} disabled={productCategorySlugs.includes(category.slug)} />
+              </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
+              <details className="rounded-lg border bg-muted/20 p-3">
+                <summary className="cursor-pointer text-sm font-medium">Edit category</summary>
+                <div className="mt-4"><CategoryEditForm category={category} /></div>
+              </details>
               {category.subcategories.length ? (
                 <ul className="flex flex-wrap gap-2">
                   {category.subcategories.map((subcategory) => (

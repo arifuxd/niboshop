@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { ArrowDownIcon, ArrowUpIcon, GripVerticalIcon, ImagePlusIcon, Trash2Icon } from 'lucide-react'
 import Link from 'next/link'
-import { createProductAction, type FormState } from '@/app/admin/actions'
+import { createProductAction, updateProductAction, type FormState } from '@/app/admin/actions'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,7 +13,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
-import type { Category } from '@/lib/data'
+import type { Category, Product } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
 const initial: FormState = {}
@@ -23,14 +23,15 @@ const acceptedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif
 
 type GalleryImage = { id: string; src: string; name: string }
 
-export function ProductForm({ categories }: { categories: Category[] }) {
-  const [state, action, pending] = React.useActionState(createProductAction, initial)
-  const [images, setImages] = React.useState<GalleryImage[]>([])
+export function ProductForm({ categories, product }: { categories: Category[]; product?: Product }) {
+  const boundUpdateAction = product ? updateProductAction.bind(null, product.id) : null
+  const [state, action, pending] = React.useActionState(boundUpdateAction ?? createProductAction, initial)
+  const [images, setImages] = React.useState<GalleryImage[]>(() => product?.images.map((src, index) => ({ id: `${index}-${src}`, src, name: `Product photo ${index + 1}` })) ?? [])
   const [uploading, setUploading] = React.useState(false)
   const [uploadError, setUploadError] = React.useState('')
   const [draggedId, setDraggedId] = React.useState<string | null>(null)
-  const [categorySlug, setCategorySlug] = React.useState('')
-  const [subcategorySlug, setSubcategorySlug] = React.useState('')
+  const [categorySlug, setCategorySlug] = React.useState(product?.categorySlug ?? '')
+  const [subcategorySlug, setSubcategorySlug] = React.useState(product?.subcategorySlug ?? '')
   const selectedCategory = categories.find((category) => category.slug === categorySlug)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const err = state.fieldErrors ?? {}
@@ -89,20 +90,20 @@ export function ProductForm({ categories }: { categories: Category[] }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Basic information</CardTitle>
+            <CardTitle>{product ? 'Edit product details' : 'Basic information'}</CardTitle>
             <CardDescription>Shown on the product card and product page.</CardDescription>
           </CardHeader>
           <CardContent>
             <FieldGroup>
               <Field data-invalid={!!err.name}>
                 <FieldLabel htmlFor="name">Product name</FieldLabel>
-                <Input id="name" name="name" aria-invalid={!!err.name} placeholder="e.g. Nova X Pro 5G 256GB" />
+                <Input id="name" name="name" defaultValue={product?.name} aria-invalid={!!err.name} placeholder="e.g. Nova X Pro 5G 256GB" />
                 {err.name && <FieldError>{err.name}</FieldError>}
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field data-invalid={!!err.brand}>
                   <FieldLabel htmlFor="brand">Brand</FieldLabel>
-                  <Input id="brand" name="brand" aria-invalid={!!err.brand} placeholder="e.g. Nova" />
+                  <Input id="brand" name="brand" defaultValue={product?.brand} aria-invalid={!!err.brand} placeholder="e.g. Nova" />
                   {err.brand && <FieldError>{err.brand}</FieldError>}
                 </Field>
                 <Field data-invalid={!!err.categorySlug}>
@@ -155,6 +156,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                 <Textarea
                   id="description"
                   name="description"
+                  defaultValue={product?.description}
                   rows={5}
                   aria-invalid={!!err.description}
                   placeholder="Describe the product for customers."
@@ -163,7 +165,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
               </Field>
               <Field>
                 <FieldLabel htmlFor="highlights">Key highlights</FieldLabel>
-                <Textarea id="highlights" name="highlights" rows={4} placeholder={'One highlight per line'} />
+                <Textarea id="highlights" name="highlights" defaultValue={product?.highlights.join('\n')} rows={4} placeholder={'One highlight per line'} />
                 <FieldDescription>Each line becomes a bullet on the product page.</FieldDescription>
               </Field>
             </FieldGroup>
@@ -179,7 +181,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field data-invalid={!!err.price}>
                   <FieldLabel htmlFor="price">Sale price (৳)</FieldLabel>
-                  <Input id="price" name="price" type="number" min={1} step="1" inputMode="numeric" aria-invalid={!!err.price} />
+                  <Input id="price" name="price" defaultValue={product?.price} type="number" min={1} step="1" inputMode="numeric" aria-invalid={!!err.price} />
                   {err.price && <FieldError>{err.price}</FieldError>}
                 </Field>
                 <Field data-invalid={!!err.comparePrice}>
@@ -187,6 +189,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                   <Input
                     id="comparePrice"
                     name="comparePrice"
+                    defaultValue={product?.comparePrice}
                     type="number"
                     min={1}
                     step="1"
@@ -201,7 +204,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
                 </Field>
                 <Field data-invalid={!!err.stock}>
                   <FieldLabel htmlFor="stock">Stock</FieldLabel>
-                  <Input id="stock" name="stock" type="number" min={0} step="1" defaultValue={10} inputMode="numeric" aria-invalid={!!err.stock} />
+                  <Input id="stock" name="stock" type="number" min={0} step="1" defaultValue={product?.stock ?? 10} inputMode="numeric" aria-invalid={!!err.stock} />
                   {err.stock && <FieldError>{err.stock}</FieldError>}
                 </Field>
               </div>
@@ -292,15 +295,15 @@ export function ProductForm({ categories }: { categories: Category[] }) {
           <CardContent>
             <FieldGroup>
               <Field orientation="horizontal">
-                <Switch id="isNew" name="isNew" />
+                <Switch id="isNew" name="isNew" defaultChecked={product?.isNew} />
                 <FieldLabel htmlFor="isNew">Show in New Arrivals</FieldLabel>
               </Field>
               <Field orientation="horizontal">
-                <Switch id="isFeatured" name="isFeatured" />
+                <Switch id="isFeatured" name="isFeatured" defaultChecked={product?.isFeatured} />
                 <FieldLabel htmlFor="isFeatured">Show in Featured</FieldLabel>
               </Field>
               <Field orientation="horizontal">
-                <Switch id="freeShipping" name="freeShipping" />
+                <Switch id="freeShipping" name="freeShipping" defaultChecked={product?.freeShipping} />
                 <div className="flex flex-col gap-1">
                   <FieldLabel htmlFor="freeShipping">Free shipping</FieldLabel>
                   <FieldDescription>Waive delivery when the cart contains only free-shipping products.</FieldDescription>
@@ -313,7 +316,7 @@ export function ProductForm({ categories }: { categories: Category[] }) {
         <div className="flex gap-2">
           <Button type="submit" size="lg" className="flex-1" disabled={pending}>
             {pending && <Spinner data-icon="inline-start" />}
-            Publish product
+            {product ? 'Save changes' : 'Publish product'}
           </Button>
           <Link href="/admin/products" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>
             Cancel

@@ -28,6 +28,20 @@ export async function createCategory(input: Omit<Category, 'slug' | 'subcategori
   return category
 }
 
+export async function updateCategory(slug: string, patch: Pick<Category, 'name' | 'description' | 'icon'>) {
+  const category = categories.find((item) => item.slug === slug)
+  if (category) Object.assign(category, patch)
+  return category
+}
+
+export async function deleteCategory(slug: string) {
+  if (products.some((product) => product.categorySlug === slug)) return false
+  const index = categories.findIndex((category) => category.slug === slug)
+  if (index < 0) return false
+  categories.splice(index, 1)
+  return true
+}
+
 export async function createSubcategory(categorySlug: string, name: string) {
   const category = categories.find((item) => item.slug === categorySlug)
   if (!category) return undefined
@@ -131,6 +145,13 @@ export async function createProduct(input: NewProductInput) {
     reviewCount: 0,
   }
   products.unshift(product)
+  return product
+}
+
+export async function updateProduct(id: string, input: NewProductInput) {
+  const product = products.find((item) => item.id === id)
+  if (!product) return undefined
+  Object.assign(product, input)
   return product
 }
 

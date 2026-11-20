@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { PageHeader } from '@/components/dashboard/primitives'
 import { CategoryManager } from '@/components/dashboard/category-manager'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { getCategories } from '@/lib/data'
+import { getCategories, getProducts } from '@/lib/data'
 
 export const metadata: Metadata = { title: 'Categories' }
 
@@ -11,12 +11,18 @@ export default async function AdminCategoriesPage({
 }: {
   searchParams: Promise<{ status?: string }>
 }) {
-  const [{ status }, categories] = await Promise.all([searchParams, getCategories()])
+  const [{ status }, categories, products] = await Promise.all([searchParams, getCategories(), getProducts()])
   const notice = status === 'category-added'
     ? 'Category added to the storefront.'
-    : status === 'subcategory-added'
-      ? 'Subcategory added to the storefront.'
-      : null
+    : status === 'category-updated'
+      ? 'Category changes saved.'
+      : status === 'category-deleted'
+        ? 'Category deleted.'
+        : status === 'category-in-use'
+          ? 'This category still has products. Move or delete them before removing it.'
+          : status === 'subcategory-added'
+            ? 'Subcategory added to the storefront.'
+            : null
 
   return (
     <>
@@ -30,7 +36,7 @@ export default async function AdminCategoriesPage({
           <AlertDescription>Enter a valid name and description, then try again.</AlertDescription>
         </Alert>
       )}
-      <CategoryManager categories={categories} />
+      <CategoryManager categories={categories} productCategorySlugs={products.map((product) => product.categorySlug)} />
     </>
   )
 }
