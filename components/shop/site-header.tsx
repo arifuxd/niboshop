@@ -60,8 +60,7 @@ export async function SiteHeader() {
               </SheetHeader>
               <MobileCategoryMenu categories={categories} />
               <div className="mx-4 mt-2 mb-6 border-t pt-3">
-                <AccountAccess showLabel menuStyle />
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-header px-3 py-2 text-header-foreground">
+                <div className="flex items-center justify-between rounded-lg bg-header px-3 py-2 text-header-foreground">
                   <span className="whitespace-nowrap text-sm font-medium">
                     <LocalizedText text="Language" />
                   </span>
