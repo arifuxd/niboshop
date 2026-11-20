@@ -16,7 +16,7 @@ import {
 import { useCart } from '@/lib/cart'
 import { useLanguage } from '@/lib/language'
 import { formatPrice } from '@/lib/format'
-import { siteConfig } from '@/lib/site-config'
+import { useStoreSettings } from '@/lib/use-store-settings'
 import { cn } from '@/lib/utils'
 import { QuantityStepper } from './quantity-stepper'
 
@@ -43,6 +43,7 @@ export function CartSheet() {
   const { items, isOpen, setOpen, setQuantity, removeItem, subtotal, discount, delivery, total, count } =
     useCart()
   const { t } = useLanguage()
+  const { data: storeSettings } = useStoreSettings()
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
@@ -143,7 +144,7 @@ export function CartSheet() {
               </dl>
               {delivery > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  {t('Add more for free delivery')}: {formatPrice(siteConfig.freeShippingThreshold - subtotal)}
+                  {t('Add more for free delivery')}: {formatPrice(storeSettings!.freeShippingThreshold - subtotal)}
                 </p>
               )}
               <Link

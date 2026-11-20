@@ -1,8 +1,14 @@
+export type Subcategory = {
+  slug: string
+  name: string
+}
+
 export type Category = {
   slug: string
   name: string
   icon: string
   description: string
+  subcategories: Subcategory[]
 }
 
 export type Product = {
@@ -11,6 +17,7 @@ export type Product = {
   name: string
   brand: string
   categorySlug: string
+  subcategorySlug?: string
   price: number
   comparePrice?: number
   image: string
@@ -22,6 +29,7 @@ export type Product = {
   description: string
   isNew?: boolean
   isFeatured?: boolean
+  freeShipping?: boolean
 }
 
 export type Review = {

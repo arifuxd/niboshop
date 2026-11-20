@@ -37,6 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {off > 0 && <Badge className="bg-sale text-sale-foreground">-{off}%</Badge>}
           {product.isNew && <Badge variant="secondary">{t('New')}</Badge>}
+          {product.freeShipping && <Badge variant="outline">Free shipping</Badge>}
         </div>
       </Link>
       <div className="flex flex-1 flex-col gap-2 p-3">

@@ -176,3 +176,15 @@ html[lang='bn'] body {
     display: none;
   }
 }
+
+@media (min-width: 64rem) {
+  .category-navigation-item:hover > .category-submenu,
+  .category-navigation-item:focus-within > .category-submenu {
+    display: block;
+  }
+
+  .category-navigation-item:hover > a > .category-navigation-chevron,
+  .category-navigation-item:focus-within > a > .category-navigation-chevron {
+    transform: rotate(180deg);
+  }
+}

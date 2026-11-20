@@ -1,3 +1,5 @@
+import Image from 'next/image'
+import * as LucideIcons from 'lucide-react'
 import {
   BatteryChargingIcon,
   BoxesIcon,
@@ -12,6 +14,7 @@ import {
   ShoppingBagIcon,
   SmartphoneIcon,
   TabletIcon,
+  TagsIcon,
   UserIcon,
   UsersIcon,
   WatchIcon,
@@ -34,6 +37,7 @@ const icons: Record<string, LucideIcon> = {
   user: UserIcon,
   boxes: BoxesIcon,
   'shopping-bag': ShoppingBagIcon,
+  tags: TagsIcon,
   users: UsersIcon,
 }
 
@@ -44,6 +48,10 @@ export function NamedIcon({
   name: string
   className?: string
 }) {
-  const Icon = icons[name] ?? PackageIcon
+  if (name.startsWith('https://') || name.startsWith('/')) {
+    return <Image src={name} alt="" width={40} height={40} className={className} />
+  }
+  const exportName = `${name.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}Icon`
+  const Icon = icons[name] ?? (LucideIcons as unknown as Record<string, LucideIcon>)[exportName] ?? PackageIcon
   return <Icon className={className} aria-hidden="true" />
 }

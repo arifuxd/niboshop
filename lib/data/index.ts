@@ -6,7 +6,7 @@ import { categories } from './categories'
 import { products } from './products'
 import { buildReviews } from './reviews'
 import { customers, orders, revenueByMonth, currentCustomerId } from './orders'
-import type { Customer, CustomerStatus, Order, OrderStatus, Product } from './types'
+import type { Category, Customer, CustomerStatus, Order, OrderStatus, Product } from './types'
 
 export * from './types'
 export { heroBanners, sideBanners } from './banners'
@@ -19,10 +19,45 @@ export async function getCategory(slug: string) {
   return categories.find((c) => c.slug === slug)
 }
 
-export async function getProducts(opts: { categorySlug?: string } = {}) {
-  return opts.categorySlug
-    ? products.filter((p) => p.categorySlug === opts.categorySlug)
-    : products
+export async function createCategory(input: Omit<Category, 'slug' | 'subcategories'>) {
+  const base = slugify(input.name) || 'category'
+  let slug = base
+  for (let n = 2; categories.some((category) => category.slug === slug); n++) slug = `${base}-${n}`
+  const category: Category = { ...input, slug, subcategories: [] }
+  categories.push(category)
+  return category
+}
+
+export async function updateCategory(slug: string, patch: Pick<Category, 'name' | 'description' | 'icon'>) {
+  const category = categories.find((item) => item.slug === slug)
+  if (category) Object.assign(category, patch)
+  return category
+}
+
+export async function deleteCategory(slug: string) {
+  if (products.some((product) => product.categorySlug === slug)) return false
+  const index = categories.findIndex((category) => category.slug === slug)
+  if (index < 0) return false
+  categories.splice(index, 1)
+  return true
+}
+
+export async function createSubcategory(categorySlug: string, name: string) {
+  const category = categories.find((item) => item.slug === categorySlug)
+  if (!category) return undefined
+  const base = slugify(name) || 'subcategory'
+  let slug = base
+  for (let n = 2; category.subcategories.some((subcategory) => subcategory.slug === slug); n++) slug = `${base}-${n}`
+  category.subcategories.push({ name, slug })
+  return category
+}
+
+export async function getProducts(opts: { categorySlug?: string; subcategorySlug?: string } = {}) {
+  return products.filter((product) => {
+    if (opts.categorySlug && product.categorySlug !== opts.categorySlug) return false
+    if (opts.subcategorySlug && product.subcategorySlug !== opts.subcategorySlug) return false
+    return true
+  })
 }
 
 export async function getFeaturedProducts() {
@@ -86,9 +121,9 @@ export async function getCustomerOrders(customerId = currentCustomerId) {
  */
 export type NewProductInput = Pick<
   Product,
-  'name' | 'brand' | 'categorySlug' | 'price' | 'stock' | 'image' | 'images' | 'description' | 'highlights'
+  'name' | 'brand' | 'categorySlug' | 'subcategorySlug' | 'price' | 'stock' | 'image' | 'images' | 'description' | 'highlights'
 > &
-  Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured'>>
+  Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured' | 'freeShipping'>>
 
 function slugify(value: string) {
   return value
@@ -110,6 +145,13 @@ export async function createProduct(input: NewProductInput) {
     reviewCount: 0,
   }
   products.unshift(product)
+  return product
+}
+
+export async function updateProduct(id: string, input: NewProductInput) {
+  const product = products.find((item) => item.id === id)
+  if (!product) return undefined
+  Object.assign(product, input)
   return product
 }
 

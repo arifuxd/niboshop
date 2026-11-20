@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { siteConfig } from './site-config'
+import { useStoreSettings } from './use-store-settings'
 import type { Product } from './data/types'
 
 export type CartItem = {
@@ -11,6 +12,7 @@ export type CartItem = {
   image: string
   price: number
   comparePrice?: number
+  freeShipping?: boolean
   quantity: number
 }
 
@@ -34,6 +36,10 @@ const CartContext = React.createContext<CartContextValue | null>(null)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = React.useState<CartItem[]>([])
   const [isOpen, setOpen] = React.useState(false)
+  const { data: storeSettings = {
+    insideDhakaCharge: siteConfig.deliveryCharge.insideDhaka,
+    freeShippingThreshold: siteConfig.freeShippingThreshold,
+  } } = useStoreSettings()
 
   const addItem = React.useCallback(
     (product: Product, quantity = 1, openCart = true) => {
@@ -55,6 +61,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             image: product.image,
             price: product.price,
             comparePrice: product.comparePrice,
+            freeShipping: product.freeShipping,
             quantity: Math.min(quantity, product.stock),
           },
         ]
@@ -86,9 +93,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       0,
     )
     const delivery =
-      items.length === 0 || subtotal >= siteConfig.freeShippingThreshold
+      items.length === 0 || subtotal >= storeSettings.freeShippingThreshold || items.every((item) => item.freeShipping)
         ? 0
-        : siteConfig.deliveryCharge.insideDhaka
+        : storeSettings.insideDhakaCharge
     return {
       items,
       count,
@@ -103,7 +110,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       clear,
     }
-  }, [items, isOpen, addItem, setQuantity, removeItem, clear])
+  }, [items, isOpen, addItem, setQuantity, removeItem, clear, storeSettings])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

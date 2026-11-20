@@ -1,10 +1,16 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { updateStoreSettings } from '@/lib/store-settings'
 import { redirect } from 'next/navigation'
 import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  updateProduct,
   createCustomer,
   createProduct,
+  createSubcategory,
   deleteCustomer,
   deleteProduct,
   getCategory,
@@ -24,11 +30,75 @@ const orderStatuses: OrderStatus[] = ['pending', 'processing', 'shipped', 'deliv
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? '').trim()
 
+export async function saveStoreSettingsAction(_prev: FormState, data: FormData): Promise<FormState> {
+  const address = text(data, 'address')
+  const phone = text(data, 'phone')
+  const email = text(data, 'email')
+  const hours = text(data, 'hours')
+  const logoUrl = text(data, 'logoUrl')
+  const insideDhakaCharge = Number(text(data, 'insideDhakaCharge'))
+  const outsideDhakaCharge = Number(text(data, 'outsideDhakaCharge'))
+  const freeShippingThreshold = Number(text(data, 'freeShippingThreshold'))
+  const validLogo = logoUrl.startsWith('/') || logoUrl.startsWith('https://')
+  if (!address || address.length > 200 || !phone || phone.length > 30 || !/^\S+@\S+\.\S+$/.test(email) || email.length > 254 || !hours || hours.length > 100 || !validLogo || [insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold].some((amount) => !Number.isSafeInteger(amount) || amount < 0)) {
+    return { error: 'Check the store details and enter valid non-negative whole-number delivery amounts.' }
+  }
+  updateStoreSettings({ logoUrl, address, phone, email, hours, insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold })
+  revalidatePath('/', 'layout')
+  return { success: 'Store settings saved.' }
+}
+
+export async function createCategoryAction(data: FormData) {
+  const name = text(data, 'name')
+  const description = text(data, 'description')
+  const requestedIcon = text(data, 'icon')
+  const validIcon = /^[a-z0-9-]+$/.test(requestedIcon) || requestedIcon.startsWith('https://') || requestedIcon.startsWith('/')
+  if (name.length < 2 || description.length < 3 || !validIcon || requestedIcon.length > 500) redirect('/admin/categories?status=error')
+
+  await createCategory({
+    name,
+    description,
+    icon: requestedIcon,
+  })
+  revalidatePath('/', 'layout')
+  redirect('/admin/categories?status=category-added')
+}
+
+export async function updateCategoryAction(data: FormData) {
+  const slug = text(data, 'slug')
+  const name = text(data, 'name')
+  const description = text(data, 'description')
+  const icon = text(data, 'icon')
+  if (!slug || name.length < 2 || description.length < 3 || icon.length > 500 || !/^[a-z0-9-]+$/.test(icon) && !icon.startsWith('https://') && !icon.startsWith('/')) {
+    redirect('/admin/categories?status=error')
+  }
+  await updateCategory(slug, { name, description, icon })
+  revalidatePath('/', 'layout')
+  redirect('/admin/categories?status=category-updated')
+}
+
+export async function deleteCategoryAction(slug: string) {
+  const deleted = await deleteCategory(slug)
+  revalidatePath('/', 'layout')
+  redirect(`/admin/categories?status=${deleted ? 'category-deleted' : 'category-in-use'}`)
+}
+
+export async function createSubcategoryAction(data: FormData) {
+  const categorySlug = text(data, 'categorySlug')
+  const name = text(data, 'name')
+  if (name.length < 2 || !(await createSubcategory(categorySlug, name))) {
+    redirect('/admin/categories?status=error')
+  }
+  revalidatePath('/', 'layout')
+  redirect('/admin/categories?status=subcategory-added')
+}
+
 export async function createProductAction(_prev: FormState, data: FormData): Promise<FormState> {
   const fieldErrors: Record<string, string> = {}
   const name = text(data, 'name')
   const brand = text(data, 'brand')
   const categorySlug = text(data, 'categorySlug')
+  const subcategorySlug = text(data, 'subcategorySlug')
   const price = Number(text(data, 'price'))
   const comparePriceRaw = text(data, 'comparePrice')
   const comparePrice = comparePriceRaw ? Number(comparePriceRaw) : undefined
@@ -49,7 +119,11 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
 
   if (name.length < 3) fieldErrors.name = 'Enter a product name (at least 3 characters).'
   if (!brand) fieldErrors.brand = 'Enter a brand.'
-  if (!(await getCategory(categorySlug))) fieldErrors.categorySlug = 'Choose a category.'
+  const category = await getCategory(categorySlug)
+  if (!category) fieldErrors.categorySlug = 'Choose a category.'
+  if (subcategorySlug && !category?.subcategories.some((subcategory) => subcategory.slug === subcategorySlug)) {
+    fieldErrors.subcategorySlug = 'Choose a subcategory from the selected category.'
+  }
   if (!Number.isFinite(price) || price <= 0) fieldErrors.price = 'Enter a price greater than 0.'
   if (comparePrice !== undefined && (!Number.isFinite(comparePrice) || comparePrice <= price))
     fieldErrors.comparePrice = 'Regular price must be higher than the sale price.'
@@ -66,6 +140,7 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
     name,
     brand,
     categorySlug,
+    subcategorySlug: subcategorySlug || undefined,
     price,
     comparePrice,
     stock,
@@ -75,8 +150,48 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
     highlights,
     isNew: data.get('isNew') === 'on',
     isFeatured: data.get('isFeatured') === 'on',
+    freeShipping: data.get('freeShipping') === 'on',
   })
   revalidatePath('/', 'layout')
+  redirect('/admin/products')
+}
+
+export async function updateProductAction(id: string, _prev: FormState, data: FormData): Promise<FormState> {
+  const name = text(data, 'name')
+  const brand = text(data, 'brand')
+  const categorySlug = text(data, 'categorySlug')
+  const subcategorySlug = text(data, 'subcategorySlug')
+  const price = Number(text(data, 'price'))
+  const compareRaw = text(data, 'comparePrice')
+  const comparePrice = compareRaw ? Number(compareRaw) : undefined
+  const stock = Number(text(data, 'stock'))
+  const description = text(data, 'description')
+  const highlights = text(data, 'highlights').split('\n').map((line) => line.trim()).filter(Boolean)
+  let images: string[] = []
+  try {
+    const parsed: unknown = JSON.parse(text(data, 'images'))
+    if (Array.isArray(parsed) && parsed.every((src) => typeof src === 'string' && src.startsWith('https://'))) images = parsed
+  } catch {}
+  const category = await getCategory(categorySlug)
+  const fieldErrors: Record<string, string> = {}
+  if (name.length < 3) fieldErrors.name = 'Enter a product name (at least 3 characters).'
+  if (!brand) fieldErrors.brand = 'Enter a brand.'
+  if (!category) fieldErrors.categorySlug = 'Choose a category.'
+  if (subcategorySlug && !category?.subcategories.some((subcategory) => subcategory.slug === subcategorySlug)) fieldErrors.subcategorySlug = 'Choose a valid subcategory.'
+  if (!Number.isFinite(price) || price <= 0) fieldErrors.price = 'Enter a price greater than 0.'
+  if (comparePrice !== undefined && (!Number.isFinite(comparePrice) || comparePrice <= price)) fieldErrors.comparePrice = 'Regular price must be higher than sale price.'
+  if (!Number.isInteger(stock) || stock < 0) fieldErrors.stock = 'Enter a whole number, 0 or more.'
+  if (images.length < 1 || images.length > 6) fieldErrors.image = 'Keep 1 to 6 valid product images.'
+  if (description.length < 10) fieldErrors.description = 'Write a short description.'
+  if (Object.keys(fieldErrors).length) return { error: 'Please fix the highlighted fields.', fieldErrors }
+  const product = await updateProduct(id, {
+    name, brand, categorySlug, subcategorySlug: subcategorySlug || undefined, price, comparePrice, stock,
+    image: images[0], images, description, highlights,
+    isNew: data.get('isNew') === 'on', isFeatured: data.get('isFeatured') === 'on', freeShipping: data.get('freeShipping') === 'on',
+  })
+  if (!product) return { error: 'Product not found.' }
+  revalidatePath('/', 'layout')
+  revalidatePath(`/product/${product.slug}`)
   redirect('/admin/products')
 }
 
