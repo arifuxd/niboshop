@@ -35,6 +35,9 @@ const CartContext = React.createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = React.useState<CartItem[]>([])
+  const [hydrated, setHydrated] = React.useState(false)
+  React.useEffect(() => { try { const saved = localStorage.getItem('niboshop-cart'); if (saved) setItems(JSON.parse(saved)) } catch {} setHydrated(true) }, [])
+  React.useEffect(() => { if (hydrated) localStorage.setItem('niboshop-cart', JSON.stringify(items)) }, [items, hydrated])
   const [isOpen, setOpen] = React.useState(false)
   const { data: storeSettings = {
     insideDhakaCharge: siteConfig.deliveryCharge.insideDhaka,

@@ -32,7 +32,7 @@ export function CartButton() {
     >
       <ShoppingCartIcon data-icon="inline-start" />
       <span className="hidden sm:inline">{t('Cart')}</span>
-      <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-sale text-[11px] font-semibold text-sale-foreground">
+      <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary-gradient text-[11px] font-semibold text-white">
         {count}
       </span>
     </Button>
@@ -96,7 +96,7 @@ export function CartSheet() {
                       >
                         {item.name}
                       </Link>
-                      <p className="text-sm font-semibold text-sale">{formatPrice(item.price)}</p>
+                      <p className="text-sm font-semibold text-primary-gradient">{formatPrice(item.price)}</p>
                       <div className="flex items-center justify-between">
                         <QuantityStepper
                           size="sm"

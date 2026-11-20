@@ -1,0 +1,3 @@
+import { cookies } from 'next/headers'
+const base=(process.env.NIBOSHOP_API_URL||'http://127.0.0.1:8000/api').replace(/\/$/,'')
+export async function serverApi<T>(path:string, init?:RequestInit):Promise<T>{const jar=await cookies();const token=jar.get('niboshop-token')?.value;const response=await fetch(`${base}${path}`,{...init,headers:{Accept:'application/json',...(init?.body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:`Bearer ${token}`}:{ }),...init?.headers},cache:'no-store'});if(!response.ok)throw new Error(`API ${response.status}: ${await response.text()}`);return response.json() as Promise<T>}

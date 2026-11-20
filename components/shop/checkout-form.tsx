@@ -16,11 +16,10 @@ import { siteConfig } from '@/lib/site-config'
 import { useStoreSettings } from '@/lib/use-store-settings'
 import { cn } from '@/lib/utils'
 import { QuantityStepper } from './quantity-stepper'
+import { api } from '@/lib/api'
 
 const payments = [
   { value: 'cod', label: 'Cash on Delivery', hint: 'Pay when you receive your order' },
-  { value: 'bkash', label: 'bKash', hint: 'Pay with your bKash wallet' },
-  { value: 'card', label: 'Credit / Debit Card', hint: 'Visa, Mastercard, Amex' },
 ] as const
 
 export function CheckoutForm() {
@@ -29,6 +28,8 @@ export function CheckoutForm() {
   const [zone, setZone] = React.useState<'inside' | 'outside'>('inside')
   const [payment, setPayment] = React.useState<string>('cod')
   const [placed, setPlaced] = React.useState<string | null>(null)
+  const [error, setError] = React.useState('')
+  const [submitting, setSubmitting] = React.useState(false)
 
   const delivery =
     items.length === 0 || subtotal >= storeSettings!.freeShippingThreshold || items.every((item) => item.freeShipping)
@@ -76,10 +77,10 @@ export function CheckoutForm() {
   return (
     <form
       className="grid gap-6 lg:grid-cols-[1fr_400px]"
-      onSubmit={(e) => {
-        e.preventDefault()
-        setPlaced(`NB-${10500 + Math.floor(Math.random() * 400)}`)
-        clear()
+      onSubmit={async (e) => {
+        e.preventDefault(); setError(''); setSubmitting(true)
+        const form = new FormData(e.currentTarget)
+        try { const order = await api<{number:string}>('/orders', { method: 'POST', body: JSON.stringify({ name: form.get('name'), phone: form.get('phone'), email: form.get('email') || null, address: form.get('address'), city: form.get('city'), note: form.get('note') || null, zone, items: items.map(i => ({ productId: Number(i.productId.replace(/^p-?/, '')), quantity: i.quantity })) }) }); setPlaced(order.number); clear() } catch (err) { setError(err instanceof Error ? err.message : 'Could not place the order.') } finally { setSubmitting(false) }
       }}
     >
       <div className="flex flex-col gap-6">
@@ -213,8 +214,9 @@ export function CheckoutForm() {
             <dd>{formatPrice(total)}</dd>
           </div>
         </dl>
-        <Button type="submit" size="lg" className="mt-4 w-full">
-          Place Order
+        {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
+        <Button type="submit" size="lg" className="mt-4 w-full" disabled={submitting}>
+          {submitting ? 'Placing order…' : 'Place Order'}
         </Button>
       </aside>
     </form>

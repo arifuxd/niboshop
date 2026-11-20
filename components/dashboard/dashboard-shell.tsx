@@ -9,6 +9,7 @@ import { NamedIcon } from '@/components/shop/category-icon'
 import { Logo } from '@/components/shop/logo'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { LogoutButton } from './logout-button'
 
 type NavItem = { readonly label: string; readonly href: string; readonly icon: string }
 
@@ -16,11 +17,13 @@ export function DashboardShell({
   title,
   nav,
   rootHref,
+  showSignOut,
   children,
 }: {
   title: string
   nav: readonly NavItem[]
   rootHref: string
+  showSignOut: boolean
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -66,6 +69,7 @@ export function DashboardShell({
                   </Link>
                 </li>
               ))}
+              {showSignOut && <li className="mt-1 border-t pt-1"><LogoutButton /></li>}
             </ul>
           </details>
           <ul className="hidden overflow-hidden rounded-xl border bg-card p-1.5 shadow-sm lg:flex lg:flex-col">
@@ -76,6 +80,7 @@ export function DashboardShell({
                 </Link>
               </li>
             ))}
+            {showSignOut && <li className="mt-1 border-t pt-1"><LogoutButton /></li>}
           </ul>
         </nav>
         <div className="min-w-0 flex flex-col gap-6">{children}</div>

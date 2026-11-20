@@ -24,7 +24,7 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full">
-      <div className="hidden bg-primary text-xs text-primary-foreground md:block">
+      <div className="hidden bg-primary-gradient text-xs text-primary-foreground md:block">
         <div className="container-shop flex h-8 items-center justify-between">
           <p>{siteConfig.topBar.map((item, index) => (
             <span key={item}>{index > 0 && <span aria-hidden="true">  •  </span>}<LocalizedText text={item} /></span>

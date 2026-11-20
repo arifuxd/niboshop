@@ -45,7 +45,7 @@ export function AuthForm({
     else router.push('/')
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setNotice('')
     if (isSignup) {
@@ -54,7 +54,8 @@ export function AuthForm({
         setNotice(t('Your passwords do not match. Please check and try again.'))
         return
       }
-      setActiveMode('otp')
+      const email = String(form.get('identity') || '')
+      try { const result = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name: form.get('name'), email, password: form.get('password') }) }).then(async r => { if(!r.ok) throw new Error(await r.text()); return r.json() }); setNotice('Account created successfully.'); window.dispatchEvent(new Event('niboshop-auth-change')); router.push('/account') } catch (e) { setNotice(e instanceof Error ? 'Registration failed. Check your email and password.' : 'Registration failed.') }
       return
     }
     if (isOtp) {
@@ -65,9 +66,9 @@ export function AuthForm({
       setNotice(t('Code verification is not connected in this UI-only prototype.'))
       return
     }
-    setNotice(activeMode === 'forgot'
-      ? t('Password reset is not connected in this UI-only prototype.')
-      : t('Authentication is not connected in this UI-only prototype, so nothing was submitted or saved.'))
+    if (activeMode === 'forgot') { setNotice(t('Password reset is unavailable because email delivery is not configured.')); return }
+    const form = new FormData(event.currentTarget)
+    try { const result = await fetch('/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: form.get('identity'), password: form.get('password') }) }).then(async r => { if(!r.ok) throw new Error(await r.text()); return r.json() }); window.dispatchEvent(new Event('niboshop-auth-change')); router.push(result.user.role === 'admin' ? '/admin' : '/account') } catch { setNotice('Could not sign in. Check your email and password.') }
   }
 
   function updateOtp(index: number, value: string) {
@@ -161,8 +162,8 @@ export function AuthForm({
                 </div>
               )}
               <div className="flex flex-col gap-2">
-                <Label htmlFor="identity">{t('Email or phone number')}</Label>
-                <Input id="identity" name="identity" type="text" autoComplete="username" placeholder={t('Enter email or phone number')} required className={inputClassName} />
+                <Label htmlFor="identity">{t('Email address')}</Label>
+                <Input id="identity" name="identity" type="email" autoComplete="username" placeholder={t('Enter email address')} required className={inputClassName} />
               </div>
               {activeMode !== 'forgot' && (
                 <>

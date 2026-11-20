@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { ProductDescriptionEditor } from '@/components/dashboard/product-description-editor'
 import { Spinner } from '@/components/ui/spinner'
 import type { Category, Product } from '@/lib/data'
 import { cn } from '@/lib/utils'
@@ -32,9 +33,35 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   const [draggedId, setDraggedId] = React.useState<string | null>(null)
   const [categorySlug, setCategorySlug] = React.useState(product?.categorySlug ?? '')
   const [subcategorySlug, setSubcategorySlug] = React.useState(product?.subcategorySlug ?? '')
+  const formRef = React.useRef<HTMLFormElement>(null)
+  const submittedFields = React.useRef<Record<string, { value?: string; checked?: boolean }>>({})
   const selectedCategory = categories.find((category) => category.slug === categorySlug)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const err = state.fieldErrors ?? {}
+
+  React.useEffect(() => {
+    if (!Object.keys(state.fieldErrors ?? {}).length) return
+    const form = formRef.current
+    if (!form) return
+
+    for (const [name, saved] of Object.entries(submittedFields.current)) {
+      const field = Array.from(form.elements).find((element) => 'name' in element && element.name === name)
+      if (field instanceof HTMLInputElement && saved.checked !== undefined) field.checked = saved.checked
+      else if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) && saved.value !== undefined) field.value = saved.value
+    }
+  }, [state])
+
+  function preserveSubmittedFields(event: React.FormEvent<HTMLFormElement>) {
+    const fields: Record<string, { value?: string; checked?: boolean }> = {}
+    for (const element of Array.from(event.currentTarget.elements)) {
+      if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) continue
+      if (!element.name || element.type === 'hidden' || element.type === 'file') continue
+      fields[element.name] = element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(element.type)
+        ? { checked: element.checked }
+        : { value: element.value }
+    }
+    submittedFields.current = fields
+  }
 
   async function uploadFiles(fileList: FileList | null) {
     if (!fileList?.length) return
@@ -80,7 +107,13 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
   }
 
   return (
-    <form action={action} className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <form
+      ref={formRef}
+      action={action}
+      onSubmit={preserveSubmittedFields}
+      onReset={(event) => event.preventDefault()}
+      className="grid gap-6 lg:grid-cols-[1fr_320px]"
+    >
       <div className="flex min-w-0 flex-col gap-6">
         {state.error && (
           <Alert variant="destructive">
@@ -153,14 +186,8 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
               ) : null}
               <Field data-invalid={!!err.description}>
                 <FieldLabel htmlFor="description">Description</FieldLabel>
-                <Textarea
-                  id="description"
-                  name="description"
-                  defaultValue={product?.description}
-                  rows={5}
-                  aria-invalid={!!err.description}
-                  placeholder="Describe the product for customers."
-                />
+                <ProductDescriptionEditor name="description" defaultValue={product?.description ?? ''} invalid={!!err.description} />
+                <FieldDescription>Use the toolbar to format the product details shown to customers.</FieldDescription>
                 {err.description && <FieldError>{err.description}</FieldError>}
               </Field>
               <Field>
@@ -257,7 +284,7 @@ export function ProductForm({ categories, product }: { categories: Category[]; p
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={item.src} alt={item.name} className="size-full object-cover" />
                     </div>
-                    {index === 0 && <span className="absolute left-2 top-2 rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">Main image</span>}
+                    {index === 0 && <span className="absolute left-2 top-2 rounded-md bg-primary-gradient px-2 py-1 text-xs font-medium text-primary-foreground">Main image</span>}
                     <div className="flex items-center justify-between gap-1 p-1.5">
                       <span className="flex min-w-0 items-center gap-1 truncate text-xs text-muted-foreground" title={item.name}>
                         <GripVerticalIcon className="size-3 shrink-0" aria-hidden="true" />

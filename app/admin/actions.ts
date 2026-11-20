@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { updateStoreSettings } from '@/lib/store-settings'
 import { redirect } from 'next/navigation'
 import {
   createCategory,
@@ -18,8 +17,8 @@ import {
   updateOrderStatus,
   updateHomepageBanners,
   updateHomepageSections,
-  homepageSections,
   getProducts,
+  saveSettings,
   type Banner,
   type CustomerStatus,
   type OrderStatus,
@@ -44,11 +43,11 @@ export async function saveStoreSettingsAction(_prev: FormState, data: FormData):
   const insideDhakaCharge = Number(text(data, 'insideDhakaCharge'))
   const outsideDhakaCharge = Number(text(data, 'outsideDhakaCharge'))
   const freeShippingThreshold = Number(text(data, 'freeShippingThreshold'))
-  const validLogo = logoUrl.startsWith('/') || logoUrl.startsWith('https://')
+  const validLogo = logoUrl.startsWith('/') || logoUrl.startsWith('https://') || logoUrl.startsWith('http://')
   if (!address || address.length > 200 || !phone || phone.length > 30 || !/^\S+@\S+\.\S+$/.test(email) || email.length > 254 || !hours || hours.length > 100 || !validLogo || [insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold].some((amount) => !Number.isSafeInteger(amount) || amount < 0)) {
     return { error: 'Check the store details and enter valid non-negative whole-number delivery amounts.' }
   }
-  updateStoreSettings({ logoUrl, address, phone, email, hours, insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold })
+  await saveSettings({ logoUrl, address, phone, email, hours, insideDhakaCharge, outsideDhakaCharge, freeShippingThreshold })
   revalidatePath('/', 'layout')
   return { success: 'Store settings saved.' }
 }
@@ -57,7 +56,7 @@ export async function createCategoryAction(data: FormData) {
   const name = text(data, 'name')
   const description = text(data, 'description')
   const requestedIcon = text(data, 'icon')
-  const validIcon = /^[a-z0-9-]+$/.test(requestedIcon) || requestedIcon.startsWith('https://') || requestedIcon.startsWith('/')
+  const validIcon = /^[a-z0-9-]+$/.test(requestedIcon) || requestedIcon.startsWith('https://') || requestedIcon.startsWith('http://') || requestedIcon.startsWith('/')
   if (name.length < 2 || description.length < 3 || !validIcon || requestedIcon.length > 500) redirect('/admin/categories?status=error')
 
   await createCategory({
@@ -74,7 +73,7 @@ export async function updateCategoryAction(data: FormData) {
   const name = text(data, 'name')
   const description = text(data, 'description')
   const icon = text(data, 'icon')
-  if (!slug || name.length < 2 || description.length < 3 || icon.length > 500 || !/^[a-z0-9-]+$/.test(icon) && !icon.startsWith('https://') && !icon.startsWith('/')) {
+  if (!slug || name.length < 2 || description.length < 3 || icon.length > 500 || !/^[a-z0-9-]+$/.test(icon) && !icon.startsWith('https://') && !icon.startsWith('http://') && !icon.startsWith('/')) {
     redirect('/admin/categories?status=error')
   }
   await updateCategory(slug, { name, description, icon })
@@ -107,7 +106,7 @@ export async function saveHomepageSettingsAction(data: FormData) {
       return false
     }
   }
-  const validAsset = (value: string) => value.startsWith('/') || value.startsWith('https://')
+  const validAsset = (value: string) => value.startsWith('/') || value.startsWith('https://') || value.startsWith('http://')
   const readBanners = (prefix: string, count: number): Banner[] =>
     Array.from({ length: count }, (_, index) => ({
       id: text(data, `${prefix}-${index}-id`),
@@ -180,7 +179,7 @@ export async function createProductAction(_prev: FormState, data: FormData): Pro
   if (comparePrice !== undefined && (!Number.isFinite(comparePrice) || comparePrice <= price))
     fieldErrors.comparePrice = 'Regular price must be higher than the sale price.'
   if (!Number.isInteger(stock) || stock < 0) fieldErrors.stock = 'Enter a whole number, 0 or more.'
-  if (images.length < 1 || images.length > 6 || images[0] !== image || images.some((src) => !src.startsWith('https://')))
+  if (images.length < 1 || images.length > 6 || images[0] !== image || images.some((src) => !(src.startsWith('https://') || src.startsWith('http://') || src.startsWith('/'))))
     fieldErrors.image = 'Upload 1 to 6 valid product images and choose a main image.'
   if (description.length < 10) fieldErrors.description = 'Write a short description.'
 
@@ -222,7 +221,7 @@ export async function updateProductAction(id: string, _prev: FormState, data: Fo
   let images: string[] = []
   try {
     const parsed: unknown = JSON.parse(text(data, 'images'))
-    if (Array.isArray(parsed) && parsed.every((src) => typeof src === 'string' && src.startsWith('https://'))) images = parsed
+    if (Array.isArray(parsed) && parsed.every((src) => typeof src === 'string' && (src.startsWith('https://') || src.startsWith('http://') || src.startsWith('/')))) images = parsed
   } catch {}
   const category = await getCategory(categorySlug)
   const fieldErrors: Record<string, string> = {}

@@ -62,7 +62,7 @@ export default async function CategoryPage({
     cn(
       'rounded-full border px-3 py-1.5 text-sm transition-colors',
       active
-        ? 'border-primary bg-primary text-primary-foreground'
+        ? 'border-primary bg-primary-gradient text-primary-foreground'
         : 'bg-card hover:border-primary hover:text-primary',
     )
 

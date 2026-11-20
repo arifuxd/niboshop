@@ -12,6 +12,7 @@ import { useLanguage } from '@/lib/language'
 import { discountPercent } from '@/lib/format'
 import type { Product } from '@/lib/data/types'
 import { Price } from './price'
+import { WishlistButton } from './wishlist-button'
 import { StarRating } from './star-rating'
 
 export function ProductCard({ product }: { product: Product }) {
@@ -23,10 +24,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md">
-      <Link
-        href={`/product/${product.slug}`}
-        className="relative block aspect-square overflow-hidden bg-muted"
-      >
+      <div className="relative block aspect-square overflow-hidden bg-muted">
+        <Link href={`/product/${product.slug}`} className="absolute inset-0">
         <Image
           src={product.image}
           alt={product.name}
@@ -35,11 +34,13 @@ export function ProductCard({ product }: { product: Product }) {
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {off > 0 && <Badge className="bg-sale text-sale-foreground">-{off}%</Badge>}
+          {off > 0 && <Badge className="bg-primary-gradient text-white">-{off}%</Badge>}
           {product.isNew && <Badge variant="secondary">{t('New')}</Badge>}
           {product.freeShipping && <Badge variant="outline">Free shipping</Badge>}
         </div>
-      </Link>
+        </Link>
+        <WishlistButton productId={product.id} />
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <Link
           href={`/product/${product.slug}`}
@@ -55,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-auto flex flex-col gap-2 pt-1">
           <Button
             size="sm"
-            className="h-11"
+            className="h-11 font-bold"
             disabled={soldOut}
             onClick={() => {
               addItem(product)
@@ -68,7 +69,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Button
             size="sm"
             variant="outline"
-            className="h-11 border-primary text-primary hover:bg-accent hover:text-accent-foreground"
+            className="h-11 border-primary font-bold text-primary hover:bg-accent hover:text-accent-foreground"
             disabled={soldOut}
             onClick={() => {
               addItem(product, 1, false)

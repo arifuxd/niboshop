@@ -1,223 +1,44 @@
-/**
- * Data access layer. Every page reads data through these functions only,
- * so replacing the seed files with a database means editing this file alone.
- */
-import { categories } from './categories'
-import { products } from './products'
-import { buildReviews } from './reviews'
-import { customers, orders, revenueByMonth, currentCustomerId } from './orders'
-import { heroBanners, sideBanners } from './banners'
+import { serverApi } from '@/lib/api-server'
+import type { Review } from './types'
 import type { Banner, Category, Customer, CustomerStatus, Order, OrderStatus, Product } from './types'
-
 export * from './types'
-export { heroBanners, sideBanners }
-
-export type HomepageSection = {
-  id: string
-  title: string
-  description: string
-  productIds: string[]
-}
-
-export const homepageSections: HomepageSection[] = [
-  { id: 'featured', title: 'Featured Products', description: 'Hand-picked bestsellers from our stores', productIds: products.filter((product) => product.isFeatured).slice(0, 10).map((product) => product.id) },
-  { id: 'new-arrivals', title: 'New Arrivals', description: 'Fresh in stock this week', productIds: products.filter((product) => product.isNew).slice(0, 5).map((product) => product.id) },
-]
-
-export async function updateHomepageBanners(input: { hero: Banner[]; side: Banner[] }) {
-  heroBanners.splice(0, heroBanners.length, ...input.hero)
-  sideBanners.splice(0, sideBanners.length, ...input.side)
-}
-
-export async function updateHomepageSections(sections: HomepageSection[]) {
-  homepageSections.splice(0, homepageSections.length, ...sections)
-}
-
-export async function getCategories() {
-  return categories
-}
-
-export async function getCategory(slug: string) {
-  return categories.find((c) => c.slug === slug)
-}
-
-export async function createCategory(input: Omit<Category, 'slug' | 'subcategories'>) {
-  const base = slugify(input.name) || 'category'
-  let slug = base
-  for (let n = 2; categories.some((category) => category.slug === slug); n++) slug = `${base}-${n}`
-  const category: Category = { ...input, slug, subcategories: [] }
-  categories.push(category)
-  return category
-}
-
-export async function updateCategory(slug: string, patch: Pick<Category, 'name' | 'description' | 'icon'>) {
-  const category = categories.find((item) => item.slug === slug)
-  if (category) Object.assign(category, patch)
-  return category
-}
-
-export async function deleteCategory(slug: string) {
-  if (products.some((product) => product.categorySlug === slug)) return false
-  const index = categories.findIndex((category) => category.slug === slug)
-  if (index < 0) return false
-  categories.splice(index, 1)
-  return true
-}
-
-export async function createSubcategory(categorySlug: string, name: string) {
-  const category = categories.find((item) => item.slug === categorySlug)
-  if (!category) return undefined
-  const base = slugify(name) || 'subcategory'
-  let slug = base
-  for (let n = 2; category.subcategories.some((subcategory) => subcategory.slug === slug); n++) slug = `${base}-${n}`
-  category.subcategories.push({ name, slug })
-  return category
-}
-
-export async function getProducts(opts: { categorySlug?: string; subcategorySlug?: string } = {}) {
-  return products.filter((product) => {
-    if (opts.categorySlug && product.categorySlug !== opts.categorySlug) return false
-    if (opts.subcategorySlug && product.subcategorySlug !== opts.subcategorySlug) return false
-    return true
-  })
-}
-
-export async function getFeaturedProducts() {
-  return products.filter((p) => p.isFeatured)
-}
-
-export async function getNewProducts() {
-  return products.filter((p) => p.isNew)
-}
-
-export async function getProduct(slug: string) {
-  return products.find((p) => p.slug === slug)
-}
-
-export async function getRelatedProducts(product: Product, limit = 4) {
-  return products
-    .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id)
-    .concat(products.filter((p) => p.categorySlug !== product.categorySlug))
-    .slice(0, limit)
-}
-
-export async function getReviews(productId: string) {
-  return buildReviews(productId)
-}
-
-export async function searchProducts(query: string, limit = 6) {
-  const q = query.trim().toLowerCase()
-  if (q.length < 3) return []
-  return products
-    .filter((p) => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q))
-    .slice(0, limit)
-}
-
-export async function getOrders() {
-  return orders
-}
-
-export async function getOrder(id: string) {
-  return orders.find((o) => o.id === id)
-}
-
-export async function getCustomers() {
-  return customers
-}
-
-export async function getRevenueByMonth() {
-  return revenueByMonth
-}
-
-export async function getCurrentCustomer() {
-  return customers.find((c) => c.id === currentCustomerId)!
-}
-
-export async function getCustomerOrders(customerId = currentCustomerId) {
-  return orders.filter((o) => o.customerId === customerId)
-}
-
-/**
- * Mutations. These write to the in-memory seed arrays, so changes last until the
- * server restarts. Replace the bodies with database writes when persistence is added.
- */
-export type NewProductInput = Pick<
-  Product,
-  'name' | 'brand' | 'categorySlug' | 'subcategorySlug' | 'price' | 'stock' | 'image' | 'images' | 'description' | 'highlights'
-> &
-  Partial<Pick<Product, 'comparePrice' | 'isNew' | 'isFeatured' | 'freeShipping'>>
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-export async function createProduct(input: NewProductInput) {
-  const base = slugify(input.name) || 'product'
-  let slug = base
-  for (let n = 2; products.some((p) => p.slug === slug); n++) slug = `${base}-${n}`
-  const product: Product = {
-    ...input,
-    id: `p-${crypto.randomUUID().slice(0, 8)}`,
-    slug,
-    images: input.images,
-    rating: 0,
-    reviewCount: 0,
-  }
-  products.unshift(product)
-  return product
-}
-
-export async function updateProduct(id: string, input: NewProductInput) {
-  const product = products.find((item) => item.id === id)
-  if (!product) return undefined
-  Object.assign(product, input)
-  return product
-}
-
-export async function deleteProduct(id: string) {
-  const i = products.findIndex((p) => p.id === id)
-  if (i >= 0) products.splice(i, 1)
-}
-
-export async function updateOrderStatus(id: string, status: OrderStatus) {
-  const order = orders.find((o) => o.id === id)
-  if (order) order.status = status
-  return order
-}
-
-export async function getCustomer(id: string) {
-  return customers.find((c) => c.id === id)
-}
-
-export type CustomerInput = Pick<Customer, 'name' | 'email' | 'phone' | 'city'>
-
-export async function createCustomer(input: CustomerInput) {
-  const customer: Customer = {
-    ...input,
-    id: `c-${crypto.randomUUID().slice(0, 8)}`,
-    orders: 0,
-    spent: 0,
-    joined: new Date().toISOString().slice(0, 10),
-    status: 'active',
-  }
-  customers.unshift(customer)
-  return customer
-}
-
-export async function updateCustomer(id: string, patch: Partial<CustomerInput> & { status?: CustomerStatus }) {
-  const customer = customers.find((c) => c.id === id)
-  if (customer) Object.assign(customer, patch)
-  return customer
-}
-
-export async function deleteCustomer(id: string) {
-  const i = customers.findIndex((c) => c.id === id)
-  if (i >= 0) customers.splice(i, 1)
-}
-
-export async function getOrdersByCustomer(customerId: string): Promise<Order[]> {
-  return orders.filter((o) => o.customerId === customerId)
-}
+export type HomepageSection={id:string;title:string;description:string;productIds:string[]}
+type HomeData={hero:Banner[];side:Banner[];sections:HomepageSection[]}
+type RawOrder={id:number|string;number:string;user_id:number|null;customer_name:string;email?:string|null;phone:string;address:string;city:string;status:OrderStatus;payment:string;total:number|string;created_at:string;items:Array<{product_id:number|null;name:string;image:string;price:number|string;quantity:number}>}
+const orderShape=(o:RawOrder):Order=>({id:o.number,databaseId:String(o.id),customerId:String(o.user_id??''),customerName:o.customer_name,date:o.created_at,status:o.status,payment:'Cash on Delivery',total:Number(o.total),items:o.items.map(i=>({productId:String(i.product_id??''),name:i.name,image:i.image??'',price:Number(i.price),quantity:i.quantity}))})
+export async function getHomepageConfig():Promise<HomeData>{return serverApi('/homepage')}
+export async function getCategories():Promise<Category[]>{return serverApi('/categories')}
+export async function getCategory(slug:string){return (await getCategories()).find(c=>c.slug===slug)}
+export async function getProducts(opts:{categorySlug?:string;subcategorySlug?:string}={}):Promise<Product[]>{const q=new URLSearchParams();if(opts.categorySlug)q.set('category',opts.categorySlug);if(opts.subcategorySlug)q.set('subcategory',opts.subcategorySlug);return serverApi(`/products?${q}`)}
+export async function getFeaturedProducts(){return serverApi<Product[]>('/products?featured=1')}
+export async function getNewProducts(){return serverApi<Product[]>('/products?new=1')}
+export async function getProduct(slug:string){try{return await serverApi<Product>(`/products/${encodeURIComponent(slug)}`)}catch{return undefined}}
+export async function getRelatedProducts(product:Product,limit=4){return (await getProducts({categorySlug:product.categorySlug})).filter(p=>p.id!==product.id).slice(0,limit)}
+export async function getReviews(_productId:string):Promise<Review[]>{return []}
+export async function searchProducts(query:string,limit=6){const q=query.trim();if(q.length<3)return [];return (await serverApi<Product[]>(`/products?q=${encodeURIComponent(q)}`)).slice(0,limit)}
+export async function getOrders():Promise<Order[]>{return (await serverApi<RawOrder[]>('/admin/orders')).map(orderShape)}
+export async function getOrder(id:string){return (await getOrders()).find(o=>o.id===id||o.databaseId===id)}
+export async function getCustomers():Promise<Customer[]>{const rows=await serverApi<Array<{id:number;name:string;email:string;phone:string|null;city:string|null;orders_count:number;spent:number;created_at:string;status:CustomerStatus}>>('/admin/customers');return rows.map(c=>({id:String(c.id),name:c.name,email:c.email,phone:c.phone??'',city:c.city??'',orders:c.orders_count,spent:Number(c.spent),joined:c.created_at.slice(0,10),status:c.status}))}
+export async function getRevenueByMonth(){const orders=await getOrders();const months=new Map<string,{revenue:number;orders:number}>();for(const o of orders){const d=new Date(o.date);const k=d.toLocaleString('en',{month:'short'});const v=months.get(k)||{revenue:0,orders:0};v.revenue+=o.total;v.orders++;months.set(k,v)}return [...months].slice(-6).map(([month,v])=>({month,...v}))}
+export async function getCurrentCustomer():Promise<Customer>{const [u,orders]=await Promise.all([serverApi<{id:number;name:string;email:string;phone:string|null;city:string|null;created_at:string}>('/auth/me'),getCustomerOrders()]);return{id:String(u.id),name:u.name,email:u.email,phone:u.phone??'',city:u.city??'',orders:orders.length,spent:orders.reduce((n,o)=>n+o.total,0),joined:u.created_at.slice(0,10),status:'active'}}
+export async function getCustomerOrders(_customerId?:string){return (await serverApi<RawOrder[]>('/account/orders')).map(orderShape)}
+export type NewProductInput=Pick<Product,'name'|'brand'|'categorySlug'|'subcategorySlug'|'price'|'stock'|'image'|'images'|'description'|'highlights'>&Partial<Pick<Product,'comparePrice'|'isNew'|'isFeatured'|'freeShipping'>>
+const productPayload=(p:NewProductInput)=>({name:p.name,brand:p.brand,categorySlug:p.categorySlug,subcategorySlug:p.subcategorySlug,price:p.price,comparePrice:p.comparePrice,stock:p.stock,image:p.image,images:p.images,description:p.description,highlights:p.highlights,isNew:p.isNew,isFeatured:p.isFeatured,freeShipping:p.freeShipping})
+export async function createProduct(input:NewProductInput){return serverApi<Product>('/admin/products',{method:'POST',body:JSON.stringify(productPayload(input))})}
+export async function updateProduct(id:string,input:NewProductInput){return serverApi<Product>(`/admin/products/${id}`,{method:'PUT',body:JSON.stringify(productPayload(input))})}
+export async function deleteProduct(id:string){return serverApi(`/admin/products/${id}`,{method:'DELETE'})}
+export async function updateOrderStatus(id:string,status:OrderStatus){const order=await getOrder(id);if(!order)return undefined;return serverApi(`/admin/orders/${order.databaseId??order.id}`,{method:'PATCH',body:JSON.stringify({status})})}
+export async function getCustomer(id:string){const u=await serverApi<{id:number;name:string;email:string;phone:string|null;city:string|null;created_at:string;status:CustomerStatus;orders_count:number;spent:number}>(`/admin/customers/${id}`);return{id:String(u.id),name:u.name,email:u.email,phone:u.phone??'',city:u.city??'',orders:u.orders_count??0,spent:Number(u.spent??0),joined:u.created_at.slice(0,10),status:u.status} as Customer}
+export type CustomerInput=Pick<Customer,'name'|'email'|'phone'|'city'>
+export async function createCustomer(input:CustomerInput){return serverApi<Customer>('/admin/customers',{method:'POST',body:JSON.stringify(input)})}
+export async function updateCustomer(id:string,patch:Partial<CustomerInput>&{status?:CustomerStatus}){const current=await getCustomer(id);if(!current)return undefined;return serverApi(`/admin/customers/${id}`,{method:'PUT',body:JSON.stringify({name:patch.name??current.name,email:patch.email??current.email,phone:patch.phone??current.phone,city:patch.city??current.city,status:patch.status??current.status})})}
+export async function deleteCustomer(id:string){return serverApi(`/admin/customers/${id}`,{method:'DELETE'})}
+export async function getOrdersByCustomer(customerId:string):Promise<Order[]>{return (await serverApi<RawOrder[]>(`/admin/orders?customer_id=${encodeURIComponent(customerId)}`)).map(orderShape)}
+export async function createCategory(input:Omit<Category,'slug'|'subcategories'>){return serverApi<Category>('/admin/categories',{method:'POST',body:JSON.stringify(input)})}
+export async function updateCategory(slug:string,patch:Pick<Category,'name'|'description'|'icon'>){const c=await getCategory(slug);if(!c)return undefined;return serverApi<Category>(`/admin/categories/${c.id}`,{method:'PUT',body:JSON.stringify({...patch,subcategories:c.subcategories})})}
+export async function deleteCategory(slug:string){const c=await getCategory(slug);if(!c)return false;try{await serverApi(`/admin/categories/${c.id}`,{method:'DELETE'});return true}catch{return false}}
+export async function createSubcategory(categorySlug:string,name:string){const c=await getCategory(categorySlug);if(!c)return undefined;const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');const subcategories=[...c.subcategories,{name,slug}];return serverApi<Category>(`/admin/categories/${c.id}`,{method:'PUT',body:JSON.stringify({name:c.name,description:c.description,icon:c.icon,subcategories})})}
+export async function updateHomepageBanners(input:{hero:Banner[];side:Banner[]}){const current=await getHomepageConfig();return serverApi('/admin/homepage',{method:'PUT',body:JSON.stringify({...current,...input})})}
+export async function updateHomepageSections(sections:HomepageSection[]){const current=await getHomepageConfig();return serverApi('/admin/homepage',{method:'PUT',body:JSON.stringify({...current,sections})})}
+export async function saveHomepage(input:HomeData){return serverApi('/admin/homepage',{method:'PUT',body:JSON.stringify(input)})}
+export async function saveSettings<T>(settings:T){return serverApi('/admin/settings',{method:'PUT',body:JSON.stringify(settings)})}

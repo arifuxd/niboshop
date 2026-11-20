@@ -6,17 +6,15 @@ import { LocalizedText } from '@/components/localized-text'
 import {
   getCategories,
   getProducts,
-  homepageSections,
-  heroBanners,
-  sideBanners,
+  getHomepageConfig,
 } from '@/lib/data'
 
 export default async function HomePage() {
-  const [categories, allProducts] = await Promise.all([getCategories(), getProducts()])
+  const [categories, allProducts, homepage] = await Promise.all([getCategories(), getProducts(), getHomepageConfig()])
 
   return (
     <>
-      <Hero banners={heroBanners} sideBanners={sideBanners} />
+      <Hero banners={homepage.hero} sideBanners={homepage.side} />
 
       <section className="container-shop py-4" aria-labelledby="shop-by-category">
         <LocalizedText as="h2" id="shop-by-category" text="Shop by Category" className="mb-4 text-xl font-semibold tracking-tight md:text-2xl" />
@@ -37,7 +35,7 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      {homepageSections.map((section) => {
+      {homepage.sections.map((section) => {
         const products = section.productIds.map((id) => allProducts.find((product) => product.id === id)).filter((product) => product !== undefined)
         return <ProductSection key={section.id} title={section.title} description={section.description} products={products} />
       })}

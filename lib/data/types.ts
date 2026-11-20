@@ -4,6 +4,7 @@ export type Subcategory = {
 }
 
 export type Category = {
+  id?: string
   slug: string
   name: string
   icon: string
@@ -67,6 +68,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string
+  databaseId?: string
   customerId: string
   customerName: string
   date: string

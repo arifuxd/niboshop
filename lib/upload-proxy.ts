@@ -1,0 +1,3 @@
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+export async function proxyUpload(request:Request,folder:string){const base=(process.env.NIBOSHOP_API_URL||'http://127.0.0.1:8000/api').replace(/\/$/,'');const token=(await cookies()).get('niboshop-token')?.value;if(!token)return NextResponse.json({error:'Admin sign in is required.'},{status:401});const incoming=await request.formData();const data=new FormData();data.set('file',incoming.get('file') as Blob);data.set('folder',folder);const upstream=await fetch(`${base}/admin/upload`,{method:'POST',headers:{Authorization:`Bearer ${token}`,Accept:'application/json'},body:data,cache:'no-store'});const body=await upstream.json();return NextResponse.json(body,{status:upstream.status})}

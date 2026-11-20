@@ -29,20 +29,21 @@ Scope is deliberately small. Do not add EMI, pre-order, offers, tools, specifica
 
 ## Data layer
 
-- Types: `lib/data/types.ts`. Seed data: `lib/data/{products,categories,banners,reviews,orders}.ts`.
-- Pages never import seed files directly. They call the async functions in `lib/data/index.ts` (`getProducts`, `getProductBySlug`, `getOrders`, …). To connect a real database, re-implement those functions only; signatures stay the same.
-- Cart state: `lib/cart.tsx` (`CartProvider`, `useCart`), persisted client-side only for the guest cart. Open the side cart with `useCart().openCart()`.
-- Search: `app/api/search/route.ts` returns products only (name and image), triggered after 3 typed characters in `components/shop/search-box.tsx`. No categories in results.
-- Formatting helpers: `lib/format.ts` (`formatPrice`, `formatDate`).
-- Dashboards currently show a mock signed-in customer and have no authentication. Before production, add real auth (Better Auth on Neon is recommended) and protect `/account` and `/admin`, scoping every query by user id.
+- Types live in `lib/data/types.ts`; server data access lives in `lib/data/index.ts` and calls the Laravel API. The Laravel seeder owns starter catalog data in `../niboshop-backend/database/seeders/data/`.
+- Do not add in-memory fixture data to application reads or mutations. Admin write operations must use protected API endpoints through server actions.
+- Cart state lives in `lib/cart.tsx` and persists in browser storage. Open it with `useCart().setOpen(true)`.
+- Wishlist IDs persist in browser storage. Search is database-backed through `app/api/search/route.ts` and returns product suggestions only.
+- Formatting helpers live in `lib/format.ts`; store configuration is served from the backend through `/api/store-settings`.
+- Customer/admin auth uses the Laravel Sanctum API with an HttpOnly same-site token cookie. Keep `/account` and `/admin` layouts role-protected, and scope customer queries to the authenticated account.
 
 ## Adding things
 
 - **New storefront page:** create `app/(shop)/<route>/page.tsx`. It inherits the header, footer and side cart from `app/(shop)/layout.tsx`.
 - **New dashboard page:** add `app/admin/<route>/page.tsx` or `app/account/<route>/page.tsx`, then add the link to `adminNav` or `accountNav` in `lib/site-config.ts`. Compose with `PageHeader`, `StatCard`, `StatusBadge` from `components/dashboard/primitives.tsx` and `OrdersTable`.
-- **New category or product:** edit `lib/data/categories.ts` or `products.ts`. Product images go in `public/images/products/`; banners in `public/images/banners/`.
-- **New banner:** edit `lib/data/banners.ts`. Hero banners are image-only, with no overlay text or buttons.
+- **New category or product:** create it through the protected admin dashboard/API. Product images upload to Laravel local public storage.
+- **New banner:** manage it through Admin → Homepage settings. Hero banners are image-only, with no overlay text or buttons.
 - **New shared component:** put storefront pieces in `components/shop/`, dashboard pieces in `components/dashboard/`, and showcase it on `/design-system`.
+- Product descriptions use the Tiptap Simple Editor template in `components/tiptap-templates/simple/`; keep admin formatting compatible with the backend HTML allowlist and render content through `lib/product-description.ts`.
 
 ## Conventions
 

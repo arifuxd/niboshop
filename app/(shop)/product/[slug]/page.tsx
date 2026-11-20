@@ -11,6 +11,7 @@ import { ProductSection } from '@/components/shop/product-section'
 import { LocalizedText } from '@/components/localized-text'
 import { StarRating } from '@/components/shop/star-rating'
 import { getCategory, getProduct, getRelatedProducts } from '@/lib/data'
+import { prepareProductDescription } from '@/lib/product-description'
 
 export async function generateMetadata({
   params,
@@ -117,11 +118,10 @@ export default async function ProductPage({
               text="Product description"
             />
           </div>
-          <div className="mt-4 flex max-w-4xl flex-col gap-3 border-l-2 border-primary/20 pl-4 text-sm leading-7 text-foreground/75 md:pl-5">
-            {product.description.split('\n\n').map((para) => (
-              <p key={para}>{para}</p>
-            ))}
-          </div>
+          <div
+            className="product-description-content mt-4 max-w-4xl border-l-2 border-primary/20 pl-4 text-sm leading-7 text-foreground/75 md:pl-5"
+            dangerouslySetInnerHTML={{ __html: prepareProductDescription(product.description) }}
+          />
         </section>
       </div>
 
