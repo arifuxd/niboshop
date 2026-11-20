@@ -20,9 +20,9 @@ export default async function HomePage() {
 
       <section className="container-shop py-4" aria-labelledby="shop-by-category">
         <LocalizedText as="h2" id="shop-by-category" text="Shop by Category" className="mb-4 text-xl font-semibold tracking-tight md:text-2xl" />
-        <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+        <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-4 sm:overflow-visible sm:snap-none lg:grid-cols-8">
           {categories.map((c) => (
-            <li key={c.slug}>
+            <li key={c.slug} className="w-[calc((100%-1.5rem)/3)] shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/category/${c.slug}`}
                 className="flex flex-col items-center gap-2 rounded-xl border bg-card p-3 text-center text-xs font-medium transition-colors hover:border-primary hover:text-primary sm:text-sm"
