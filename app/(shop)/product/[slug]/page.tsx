@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { BookOpenTextIcon, CheckCircle2Icon, ShieldCheckIcon, TruckIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Breadcrumbs } from '@/components/shop/breadcrumbs'
 import { Price } from '@/components/shop/price'
 import { ProductPurchase } from '@/components/shop/product-purchase'
@@ -101,33 +100,27 @@ export default async function ProductPage({
           </div>
         </div>
 
-        <Tabs defaultValue="description" className="mt-6 overflow-hidden rounded-xl border bg-card">
-          <TabsList className="h-auto w-full justify-start rounded-none border-b bg-muted/40 px-4 py-3 md:px-6">
-            <TabsTrigger
-              value="description"
-              className="h-auto flex-none gap-2 rounded-lg border border-primary/15 bg-background px-4 py-2.5 text-base font-semibold text-primary shadow-sm data-active:border-primary/30 data-active:bg-primary/5 data-active:text-primary"
-            >
-              <BookOpenTextIcon className="size-4" aria-hidden="true" />
-              Description
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="description" className="p-5 md:p-7">
-            <section aria-labelledby="product-description-heading">
-              <div className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <BookOpenTextIcon className="size-5" aria-hidden="true" />
-                </span>
-                <LocalizedText
-                  as="h2"
-                  id="product-description-heading"
-                  className="text-lg font-semibold tracking-tight md:text-xl"
-                  text="Product description"
-                />
-              </div>
-            </section>
-          </TabsContent>
-        </Tabs>
+        <section
+          aria-labelledby="product-description-heading"
+          className="mt-6 rounded-xl border bg-card p-5 md:p-7"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BookOpenTextIcon className="size-5" aria-hidden="true" />
+            </span>
+            <LocalizedText
+              as="h2"
+              id="product-description-heading"
+              className="text-lg font-semibold tracking-tight md:text-xl"
+              text="Product description"
+            />
+          </div>
+          <div className="mt-4 flex max-w-4xl flex-col gap-3 border-l-2 border-primary/20 pl-4 text-sm leading-7 text-foreground/75 md:pl-5">
+            {product.description.split('\n\n').map((para) => (
+              <p key={para}>{para}</p>
+            ))}
+          </div>
+        </section>
       </div>
 
       <ProductSection title="Related Products" products={related} />
